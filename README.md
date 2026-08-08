@@ -2,13 +2,13 @@
 
 > 你的情绪和所在的地方，就是我的提示词。我讨厌算法。我有自己的品味。
 
-本地优先的个人 AI 电台。它把一句自然语言需求变成一首真实可播放的歌和一段可播出的 DJ 台词。
+本地优先运行、通过大模型 API 理解与表达的个人 AI 电台。它把一句自然语言需求变成一首真实可播放的歌和一段可播出的 DJ 台词。
 
 <p align="center">
   <img src="photos/claudio-radio-ui.png" alt="Claudio 电台界面" width="840" />
 </p>
 
-Claudio 把两件事分开处理：本地系统负责选歌、队列和播放可用性；模型只负责理解、品味与表达。这样模型失效时，电台仍能继续播放；模型工作时，主持人也不会越权改歌。
+Claudio 把两件事分开处理：本地系统负责选歌、队列和播放可用性；通过大模型 API 调用的模型只负责理解、品味与表达。这样模型失效时，电台仍能继续播放；模型工作时，主持人也不会越权改歌。
 
 ## 它解决什么问题
 
@@ -19,9 +19,9 @@ Claudio 把两件事分开处理：本地系统负责选歌、队列和播放可
 ## 主要功能
 
 - 用自然语言点歌、插队、请求下一首或生成场景歌单。
-- 从 KuGou API 与本地音乐候补中选择真实可播放的曲目。
+- 默认从已同步的 KuGou API 曲库中选择真实可播放的曲目；本地音乐目录只作为 API 曲目不可用时的备用方案。
 - 根据偏好、近期播放、时间、天气与日历调整选歌节奏。
-- 由模型为锁定歌曲选择 2-3 条正向范式，再创作 DJ 台词。
+- 由大模型 API 从正向范式库中为锁定歌曲选择 2-3 条，再创作 DJ 台词；范式可按自己的审美在 `prompts/dj-fewshot.md` 中编写或替换。
 - 使用 Fish Audio 合成语音；不可用时回退到浏览器语音。
 - 通过 React PWA、REST 与 SSE 让歌曲、台词、语音和页面状态保持一致。
 
@@ -34,7 +34,7 @@ Claudio 把两件事分开处理：本地系统负责选歌、队列和播放可
 核心边界只有三条：
 
 1. 本地系统先选择并锁定 `songId`，模型不能自行换歌。
-2. DJ 写作只读取人设、正向范式与当前锁定歌曲，不把天气、历史和原始偏好直接塞进 prompt。
+2. DJ 写作通过大模型 API，只读取人设、正向范式与当前锁定歌曲；它先从 `prompts/dj-fewshot.md` 的正向范式库选择 2-3 条，再写作，不把天气、历史和原始偏好直接塞进 prompt。
 3. 每次 DJ 决策都返回 `{ say, play, reason, segue }`；解析或 TTS 失败时仍有可交付的回退路径。
 
 ## 快速开始
@@ -42,8 +42,9 @@ Claudio 把两件事分开处理：本地系统负责选歌、队列和播放可
 ### 前置条件
 
 - Node.js 22 或更高版本
-- 一个可用的 KuGou API 服务，或本地音乐目录
-- 可选：OpenAI-compatible、DeepSeek 与 Fish Audio 的 API Key
+- 一个可用的 KuGou API 服务与可访问的 KuGou 曲库
+- 一个 OpenAI-compatible 或 DeepSeek 大模型 API Key
+- 可选：Fish Audio API Key；本地音乐目录可作为播放备用方案
 
 ```bash
 git clone <your-repo-url>
@@ -67,7 +68,7 @@ cp .env.example .env
 
 | 配置 | 用途 |
 | --- | --- |
-| `MUSIC_LIBRARY_DIR` | 本地音乐候补目录 |
+| `MUSIC_LIBRARY_DIR` | 可选，本地音乐播放备用目录 |
 | `USER_PROFILE_DIR` | 本地口味、反馈和访谈数据目录，默认 `.data/user` |
 | `KUGOU_API_BASE_URL` | KuGou API 服务地址 |
 | `AI_API_KEY`、`AI_MODEL` | 默认模型与 API Key |
@@ -75,7 +76,9 @@ cp .env.example .env
 | `CHAT_AI_API_KEY`、`CHAT_AI_MODEL` | 对话模型配置 |
 | `FISH_TTS_API_KEY`、`FISH_TTS_VOICE_ID` | Fish Audio 语音配置 |
 
-`.env.example` 提供了一套可运行的字段模板。模型与供应商可替换；项目只要求它们提供 OpenAI-compatible 或对应服务的 API。
+`.env.example` 提供了一套可运行的字段模板。默认选歌来源是 KuGou API；模型与供应商可替换，但必须提供 OpenAI-compatible 或对应服务的 API。`MUSIC_LIBRARY_DIR` 留空时不会影响 KuGou API 选歌。
+
+DJ 串词的正向范式库位于 `prompts/dj-fewshot.md`。它不是平台抓取内容，而是你为 Claudio 准备的写作参考：可保留、增删或重写成符合自己审美与节目气质的文本。每次生成时，大模型 API 会从中挑选最适合当前歌曲的 2-3 条作为参考。
 
 首次运行时，Claudio 会在 `.data/user` 创建空白的口味档案。这里以及 `.data` 中的播放记录、KuGou 会话、TTS 缓存都属于个人运行数据，不会进入 Git。
 
@@ -84,7 +87,7 @@ Claudio 的界面头像作为产品资源随仓库提供；个人运行数据、
 ## 安全与内容边界
 
 - 服务默认只监听 `127.0.0.1`。不要将开发服务器、`.data` 或带有账号会话的实例直接暴露到公网。
-- 仓库不包含音乐文件、歌词、平台账号、Cookie 或播放历史。部署者需自行取得合法的音乐来源、平台访问权限与 API 凭据。
+- 仓库不包含音乐文件、歌词、平台账号、Cookie 或播放历史。部署者需自行取得合法的 KuGou 平台访问权限、音乐来源与模型 API 凭据；本地备用曲库同样由部署者自行准备。
 - KuGou-compatible 服务是可替换的外部依赖；请自行审查其许可证、固定版本和平台条款。`scripts/setup-kugou-api.ps1` 固定到已审查提交 `06560e3e053bda1ab830750db6f645bab703f824`，不会自动追随上游最新代码。项目不会提供共享账号或公共音频转发服务。
 
 ## 使用方式
@@ -114,7 +117,7 @@ curl -X POST http://localhost:3080/api/radio/next ^
 
 ```json
 {
-  "songId": "local-or-kugou-track-id",
+  "songId": "kugou-track-id",
   "djLine": "",
   "reason": "scene and preference match",
   "moodTags": ["weather"],
@@ -127,7 +130,7 @@ curl -X POST http://localhost:3080/api/radio/next ^
 ```bash
 curl -X POST http://localhost:3080/api/dj/line ^
   -H "Content-Type: application/json" ^
-  -d "{\"songId\":\"local-or-kugou-track-id\",\"query\":\"下雨天想听点有节奏但不吵的歌\"}"
+  -d "{\"songId\":\"kugou-track-id\",\"query\":\"下雨天想听点有节奏但不吵的歌\"}"
 ```
 
 输出固定为：
@@ -135,7 +138,7 @@ curl -X POST http://localhost:3080/api/dj/line ^
 ```json
 {
   "say": "用于 TTS 与字幕的 DJ 台词",
-  "play": ["local-or-kugou-track-id"],
+  "play": ["kugou-track-id"],
   "reason": "仅供系统内部使用的推荐原因",
   "segue": "fade_in"
 }
