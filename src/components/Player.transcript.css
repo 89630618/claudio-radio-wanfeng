@@ -1,0 +1,45 @@
+/* Loaded after the global legacy stylesheet so the reading trace remains authoritative. */
+.voice-card {
+  margin-top: 0;
+}
+
+.voice-wave {
+  gap: 1px;
+}
+
+.voice-wave.active i,
+.voice-wave.active i.passed {
+  opacity: calc(0.3 + var(--energy, 0) * 0.62);
+  background: #f7f3e9;
+}
+
+.voice-transcript .karaoke-char {
+  --character-progress: 0%;
+  display: inline-block;
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    #147f5b 0 var(--character-progress),
+    rgba(36, 36, 38, 0.58) var(--character-progress) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-shadow: 0 0 0 rgba(105, 211, 157, 0);
+  transition: background 120ms linear, text-shadow 180ms ease;
+}
+
+.voice-transcript p.active .karaoke-char {
+  text-shadow: 0 0 8px rgba(105, 211, 157, 0.1);
+}
+
+@media (max-height: 760px) {
+  .voice-card {
+    margin-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voice-transcript .karaoke-char {
+    transition: none;
+  }
+}
