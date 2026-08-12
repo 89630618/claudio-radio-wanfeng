@@ -64,3 +64,20 @@
 
 - The static release gate remains blocked until the user supplies five cleared recordings, covers and pre-generated DJ audio. A short clip is not itself a public-hosting license.
 - No Pages setting was changed and no public deployment occurred. Push is still pending a working connection to GitHub.
+
+## Follow-up Verification And Fixes
+
+### Changes
+
+- Corrected full-product Fish narration playback to use the Player-rendered DJ audio element. The shared controller now pauses, resumes, cancels and stops the same audio element that drives the transcript UI.
+- Changed `dev:showcase` to build then serve the static `dist-showcase` artifact on port `5176`. This prevents the previous Vite development-entry blank screen and makes local review match the future Pages artifact.
+- Added Showcase-only compact transport layout through `440px`, keeping the volume and progress controls inside the portrait stage. The full radio stylesheet remains unchanged.
+
+### Verification
+
+- New regression test confirms the full-product controller owns the Player DJ audio element.
+- Browser check: first click removes the entry gate and starts the static tracks; the placeholder ends both DJ and music clip by design.
+- The Showcase was realigned to the existing radio chassis: it now uses the same `shell` and `stage` layout as the full product, with no dedicated 9:16 stage or extra transcript card. It retains only the static entry gate and hides private taste and voice-panel actions.
+- Browser check at the local Showcase URL confirms the shared stage, player and queue are present, chat is absent, no horizontal overflow occurs, and the entry gate can be dismissed.
+- Final combined run passed: `npx tsx --test` (52 tests), `npm run build`, `npm run smoke`, `npm run build:showcase`, `npm run showcase:validate`, and `npm run showcase:scan-build`.
+- The full build keeps its pre-existing large-chunk advisory. The smoke run logs absent private DJ samples from the isolated worktree, but all smoke checks pass; no private sample was copied into this branch.

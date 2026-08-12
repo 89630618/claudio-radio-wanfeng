@@ -95,7 +95,6 @@ export function App() {
     playAudioSoon,
     pauseAudio,
     speak,
-    speakAudioUrl,
     unlockVoiceAudio,
     primeTrackAudio,
     stopVoice,
@@ -323,30 +322,35 @@ export function App() {
   }, [unlockVoiceAudio]);
 
   const playPreparedDjVoice = useCallback((restart = true) => {
-    if (isSpeaking) {
-      stopVoice();
-      djVoiceAudioRef.current?.pause();
-      setStatus("DJ voice stopped.");
-      return;
-    }
-
-    if (!nowPlayingDj?.voiceUrl || !djVoiceAudioRef.current) {
+    const voice = djVoiceAudioRef.current;
+    if (!nowPlayingDj?.voiceUrl || !voice) {
       setStatus("DJ voice is still preparing.");
-      return;
+      return Promise.resolve(false);
     }
 
-    if (restart) djVoiceAudioRef.current.currentTime = 0;
-    return speakAudioUrl(nowPlayingDj.voiceUrl).then(
-      (played) => {
+    if (voice.src !== new URL(nowPlayingDj.voiceUrl, window.location.href).href) {
+      voice.src = nowPlayingDj.voiceUrl;
+      voice.load();
+    }
+    if (restart) voice.currentTime = 0;
+    voice.playbackRate = 0.86;
+    voice.preservesPitch = true;
+    setIsSpeaking(true);
+
+    return new Promise<boolean>((resolve) => {
+      let settled = false;
+      const finish = (played: boolean) => {
+        if (settled) return;
+        settled = true;
+        setIsSpeaking(false);
         if (played) setStatus("Fish voice played.");
-        return played;
-      },
-      () => {
-        setStatus("Use the native DJ voice control to play it.");
-        return false;
-      }
-    );
-  }, [nowPlayingDj, isSpeaking, speakAudioUrl, stopVoice]);
+        resolve(played);
+      };
+      voice.onended = () => finish(true);
+      voice.onerror = () => finish(false);
+      void voice.play().catch(() => finish(false));
+    });
+  }, [nowPlayingDj, setIsSpeaking]);
 
   const narrationPlayback = useNarrationPlayback({
     audioRef,

@@ -16,6 +16,16 @@ test("DJ narration remains visible when Fish TTS fails", async () => {
   assert.match(source, /if \(!voiceResult\.ok\) \{\s*setNowPlayingDj\(\{ songId: pick\.songId, say: result\.djLine, voiceUrl: "", source: "ai", status: "voice_failed" \}\);/);
 });
 
+test("narration state machine controls the Player DJ audio element", async () => {
+  const source = await readFile(new URL("./App.tsx", import.meta.url), "utf8");
+
+  assert.match(source, /const voice = djVoiceAudioRef\.current;/);
+  assert.match(source, /voice\.playbackRate = 0\.86;/);
+  assert.match(source, /voice\.onended = \(\) => finish\(true\);/);
+  assert.match(source, /void voice\.play\(\)\.catch\(\(\) => finish\(false\)\);/);
+  assert.doesNotMatch(source, /speakAudioUrl\(nowPlayingDj\.voiceUrl\)/);
+});
+
 test("failed prepared narration falls back to a direct DJ request", async () => {
   const source = await readFile(new URL("./App.tsx", import.meta.url), "utf8");
 

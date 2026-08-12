@@ -9,7 +9,7 @@
     "dev:web": "vite",
     "build": "tsc -b && vite build",
     "build:showcase": "tsc -b && vite build --config vite.showcase.config.ts",
-    "dev:showcase": "vite --config vite.showcase.config.ts --host 127.0.0.1 --port 5176",
+    "dev:showcase": "npm run build:showcase && vite preview --config vite.showcase.config.ts --host 127.0.0.1 --port 5176",
     "showcase:validate": "tsx scripts/showcase/validate.ts",
     "showcase:validate:release": "tsx scripts/showcase/validate.ts --release",
     "showcase:scan-build": "tsx scripts/showcase/scan-build.ts",

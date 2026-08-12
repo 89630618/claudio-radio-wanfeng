@@ -118,15 +118,14 @@ export function ShowcaseApp() {
   function changeVolume(nextVolume: number) { volumeRef.current = nextVolume; setVolume(nextVolume); if (audioRef.current) audioRef.current.volume = nextVolume; }
 
   return (
-    <main className="shell showcase-shell">
+    <main className="shell">
       <DotGrid className="dot-grid--ambient" />
-      <section className="stage showcase-stage">
+      <section className="stage">
         <SideRays />
         <TopBar theme={theme} onThemeToggle={setTheme} kugouMobile="" kugouCode="" kugouAccounts={[]} selectedKuGouUserId="" kugouLoginStatus={null} kugouLibraryStatus={null} isKuGouAuthBusy={false} isImportingPlaylist={false} onKuGouMobileChange={() => undefined} onKuGouCodeChange={() => undefined} onKuGouUserSelect={() => undefined} onKuGouCaptchaSend={() => undefined} onKuGouLogin={() => undefined} onKuGouLogout={() => undefined} onHostProfileOpen={() => undefined} showLogin={false} />
         <section className="claudio-console">
           <ProfileCard now={now} weekday={now.toLocaleDateString("en-US", { weekday: "long" })} dateStamp={now.toLocaleDateString("en-GB")} />
           <div className="player-strip"><div className="station-spacer" aria-hidden="true" /><Player isPlaying={isPlaying} currentTime={currentTime} duration={duration} volume={volume} isLoadingPick={false} isSpeaking={isSpeaking} narrationMode={mode} hasDjVoice recentPlayed={[]} hasPrevious={showcaseCatalog.length > 1} activeTasteMarks={[]} hasTrack currentTrack={track} nowPlayingDj={{ songId: track.id, say: track.djText, voiceUrl: asset(track.djAudioSrc), source: "rules", status: isSpeaking ? "voice_ready" : "idle" }} audioRef={audioRef} djVoiceAudioRef={djVoiceAudioRef} onPrevious={() => startTrack((trackIndex - 1 + showcaseCatalog.length) % showcaseCatalog.length)} onTogglePlay={togglePlay} onNext={() => startTrack((trackIndex + 1) % showcaseCatalog.length)} onTaste={() => undefined} onStopVoice={() => narration.cancel()} onNarrationModeChange={changeMode} onSeek={seek} onVolumeChange={changeVolume} formatTime={formatTime} onHostProfileOpen={() => undefined} /></div>
-          <section className="showcase-dj-line" aria-live="polite"><span>DJ TRANSCRIPT</span><p>{track.djText}</p></section>
           <PlaylistQueue playlist={playlist} queue={queue} currentTrack={trackMap.get(track.id) ?? null} trackMap={trackMap} onSelectPick={(pick: RadioPick) => startTrack(showcaseCatalog.findIndex((item) => item.id === pick.songId))} />
           <AudioPlayer audioRef={audioRef} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onLoadedMetadata={setDuration} onTimeUpdate={setCurrentTime} onEnded={() => narration.cancel()} />
           {next.id !== track.id && <audio key={next.id} src={asset(next.musicSrc)} preload="metadata" />}
