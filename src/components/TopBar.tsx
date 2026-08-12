@@ -19,6 +19,7 @@ type TopBarProps = {
   onKuGouLogin: () => void;
   onKuGouLogout: () => void;
   onHostProfileOpen: (trigger: HTMLButtonElement) => void;
+  showLogin?: boolean;
 };
 
 export function TopBar({
@@ -38,7 +39,8 @@ export function TopBar({
   onKuGouCaptchaSend,
   onKuGouLogin,
   onKuGouLogout,
-  onHostProfileOpen
+  onHostProfileOpen,
+  showLogin = true
 }: TopBarProps) {
   const isLoggedIn = kugouLoginStatus?.loggedIn === true;
   const needsLogin = kugouLoginStatus?.needsLogin === true || !isLoggedIn;
@@ -52,7 +54,7 @@ export function TopBar({
         <h1>Claudio</h1>
       </div>
       <div className="top-actions">
-        <div className="login-menu">
+        {showLogin && <div className="login-menu">
           <button className={`login-button ${isLoggedIn ? "logged-in" : ""}`} type="button">
             {isLoggedIn ? "KUGOU" : "LOGIN"}
           </button>
@@ -117,7 +119,7 @@ export function TopBar({
               </div>
             )}
           </div>
-        </div>
+        </div>}
         <div className="theme-toggle" role="group" aria-label="Theme toggle">
           <button
             className={theme === "dark" ? "active" : ""}

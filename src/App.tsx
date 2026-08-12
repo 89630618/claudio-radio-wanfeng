@@ -215,7 +215,7 @@ export function App() {
     const duckedVolume = volume * 0.25;
     const isDucking = isNarrationDucking || isSpeaking;
     const targetVolume = isDucking ? duckedVolume : volume;
-    const fadeDuration = isDucking ? 280 : 900;
+    const fadeDuration = isSpeaking ? 280 : 900;
     const startVolume = music?.volume ?? targetVolume;
     let frame = 0;
     let startedAt: number | undefined;

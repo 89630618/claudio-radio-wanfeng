@@ -1,0 +1,28 @@
+name: Showcase verification
+
+on:
+  push:
+    branches: [codex/claudio-showcase]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify-showcase:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx tsx --test src/playback/narration-machine.test.ts src/playback/useNarrationPlayback.test.mjs
+      - run: npm run showcase:validate
+      - run: npm run build
+      - run: npm run build:showcase
+      - run: npm run showcase:scan-build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claudio-showcase-static
+          path: dist-showcase

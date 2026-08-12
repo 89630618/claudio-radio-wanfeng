@@ -1,6 +1,7 @@
 node_modules
 dist
 dist-server
+dist-showcase
 .env
 .data
 public/private-assets/

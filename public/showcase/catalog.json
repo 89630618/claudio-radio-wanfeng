@@ -1,0 +1,21 @@
+[
+  {
+    "id": "demo-signal",
+    "title": "Signal Check",
+    "artist": "Claudio Studio",
+    "album": "Showcase Placeholder",
+    "musicSrc": "showcase/tracks/demo-signal/music.wav",
+    "coverSrc": "showcase/tracks/demo-signal/cover.jpg",
+    "djText": "凌晨的信号已经接通。这里是 Claudio，我们从一小段自制声音开始。",
+    "djAudioSrc": "showcase/tracks/demo-signal/dj.wav",
+    "vocalStartMs": 2400,
+    "rights": {
+      "status": "cleared",
+      "scope": "public-web-hosting",
+      "license": "Original placeholder generated for this repository",
+      "sourceUrl": "https://github.com/89630618/claudio-radio-wanfeng",
+      "attribution": "Claudio project placeholder audio and project artwork",
+      "verifiedAt": "2026-08-12"
+    }
+  }
+]

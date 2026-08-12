@@ -175,4 +175,12 @@ Claudio 当前专注于“可靠播放 + 有品味的表达”。歌词、热评
 
 Copyright (c) 2026 89630618
 
+## Static Showcase
+
+`npm run build:showcase` creates a static, pre-generated radio build in `dist-showcase` with the planned public base path `/claudio-radio-wanfeng/`. For local review, run `npm run dev:showcase` and open `http://127.0.0.1:5176/claudio-radio-wanfeng/`.
+
+The Showcase preserves the Claudio radio interface, player, queue, theme and narration controls. It deliberately excludes chat, KuGou login, local profile data, backend requests, API keys, LLM generation and Fish generation. Showcase music and narration are pre-generated static files; they are not covered automatically by this repository's Apache-2.0 license. Each published track must have an entry in `ASSET-LICENSES.md` and pass `npm run showcase:validate` before release.
+
+The full local product remains the place for real-time generation, private configuration, personalization and local music workflows. The repository contains only a self-generated placeholder Showcase asset until cleared, public-web-hostable recordings and artwork are provided.
+
 Claudio 是独立项目与虚构主持人名称，不隶属 Anthropic 或 Claude 产品。音乐、平台服务与模型 API 均为使用者自行配置的外部依赖。
