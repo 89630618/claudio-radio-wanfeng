@@ -32,3 +32,9 @@ scripts/draw_claudio_architecture_implementation.py
 scripts/draw_claudio_architecture_product_cut.py
 scripts/draw_current_architecture_2026_08.py
 scripts/draw_claudio_wrapup_architecture.py
+
+# Public collaboration instructions and phase handoff record.
+!AGENTS.md
+!docs/
+docs/*
+!docs/agent-handoff.md
