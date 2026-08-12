@@ -81,3 +81,11 @@
 - Browser check at the local Showcase URL confirms the shared stage, player and queue are present, chat is absent, no horizontal overflow occurs, and the entry gate can be dismissed.
 - Final combined run passed: `npx tsx --test` (52 tests), `npm run build`, `npm run smoke`, `npm run build:showcase`, `npm run showcase:validate`, and `npm run showcase:scan-build`.
 - The full build keeps its pre-existing large-chunk advisory. The smoke run logs absent private DJ samples from the isolated worktree, but all smoke checks pass; no private sample was copied into this branch.
+
+## Completion Audit
+
+- Added shared-stage portrait constraints for Showcase review widths while preserving the original Claudio component tree and desktop layout.
+- Expanded the verification workflow to run the complete Node test suite and `npm run smoke` before building and scanning the static artifact. The workflow still uploads an artifact only and contains no Pages deployment action.
+- README now records the planned Pages URL and explicitly states that Pages is not enabled or publicly deployed by this branch.
+- `npm run showcase:validate:release` remains intentionally red: the catalog has one self-generated placeholder instead of the required five cleared public-web-hostable recordings. This is the only release-content gate that cannot be completed without user-provided rights and assets.
+- Final engineering verification: `npx tsx --test` passed 54 tests; `npm run build`, `npm run smoke`, `npm run build:showcase`, `npm run showcase:validate`, and `npm run showcase:scan-build` all passed.

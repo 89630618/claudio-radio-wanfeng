@@ -118,7 +118,7 @@ export function ShowcaseApp() {
   function changeVolume(nextVolume: number) { volumeRef.current = nextVolume; setVolume(nextVolume); if (audioRef.current) audioRef.current.volume = nextVolume; }
 
   return (
-    <main className="shell">
+    <main className="shell showcase-shell">
       <DotGrid className="dot-grid--ambient" />
       <section className="stage">
         <SideRays />

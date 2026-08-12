@@ -17,7 +17,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx tsx --test src/playback/narration-machine.test.ts src/playback/useNarrationPlayback.test.mjs
+      - run: npx tsx --test
+      - run: npm run smoke
       - run: npm run showcase:validate
       - run: npm run build
       - run: npm run build:showcase

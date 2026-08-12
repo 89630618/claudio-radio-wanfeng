@@ -179,6 +179,8 @@ Copyright (c) 2026 89630618
 
 `npm run build:showcase` creates a static, pre-generated radio build in `dist-showcase` with the planned public base path `/claudio-radio-wanfeng/`. For local review, run `npm run dev:showcase` and open `http://127.0.0.1:5176/claudio-radio-wanfeng/`.
 
+Planned public entry after an explicitly approved Pages release: [Claudio Showcase](https://89630618.github.io/claudio-radio-wanfeng/). Pages is not enabled by this branch and no public deployment has been performed.
+
 The Showcase preserves the Claudio radio interface, player, queue, theme and narration controls. It deliberately excludes chat, KuGou login, local profile data, backend requests, API keys, LLM generation and Fish generation. Showcase music and narration are pre-generated static files; they are not covered automatically by this repository's Apache-2.0 license. Each published track must have an entry in `ASSET-LICENSES.md` and pass `npm run showcase:validate` before release.
 
 The full local product remains the place for real-time generation, private configuration, personalization and local music workflows. The repository contains only a self-generated placeholder Showcase asset until cleared, public-web-hostable recordings and artwork are provided.
