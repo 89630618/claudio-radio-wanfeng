@@ -89,3 +89,4 @@
 - README now records the planned Pages URL and explicitly states that Pages is not enabled or publicly deployed by this branch.
 - `npm run showcase:validate:release` remains intentionally red: the catalog has one self-generated placeholder instead of the required five cleared public-web-hostable recordings. This is the only release-content gate that cannot be completed without user-provided rights and assets.
 - Final engineering verification: `npx tsx --test` passed 54 tests; `npm run build`, `npm run smoke`, `npm run build:showcase`, `npm run showcase:validate`, and `npm run showcase:scan-build` all passed.
+- Branch publication follow-up: all five Showcase commits were rewritten with `89630618@users.noreply.github.com` after GitHub rejected the private address. A later branch-only push reached GitHub but the connection was reset on port 443, so the remote branch still requires a retry from a stable GitHub connection. `main` and Pages remain untouched.
