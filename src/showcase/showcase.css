@@ -34,6 +34,6 @@
 
 /* Showcase does not expose private taste or voice-panel actions. */
 .stage .taste-controls,
-.stage .voice-panel-backdrop {
+.stage .taste-controls {
   display: none;
 }

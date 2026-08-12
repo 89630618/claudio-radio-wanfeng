@@ -6,6 +6,7 @@ import { AudioPlayer } from "../components/AudioPlayer";
 import { PlaylistQueue } from "../components/PlaylistQueue";
 import { DotGrid } from "../components/DotGrid";
 import { SideRays } from "../components/SideRays";
+import { HostProfileDialog } from "../components/HostProfileDialog";
 import type { NarrationMode } from "../playback/narration-machine";
 import { useNarrationPlayback } from "../playback/useNarrationPlayback";
 import { showcaseCatalog } from "./catalog";
@@ -24,6 +25,7 @@ export function ShowcaseApp() {
   const activeTrackRef = useRef<ShowcaseTrack>(showcaseCatalog[0]);
   const fadeFrameRef = useRef<number | undefined>(undefined);
   const volumeRef = useRef(0.5);
+  const hostProfileTriggerRef = useRef<HTMLButtonElement>(null);
   const [entered, setEntered] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [trackIndex, setTrackIndex] = useState(0);
@@ -34,6 +36,7 @@ export function ShowcaseApp() {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.5);
   const [now, setNow] = useState(() => new Date());
+  const [isHostProfileOpen, setIsHostProfileOpen] = useState(false);
   const track = showcaseCatalog[trackIndex];
   const next = showcaseCatalog[(trackIndex + 1) % showcaseCatalog.length];
   const playlist = useMemo<PlaylistSuggestion>(() => ({
@@ -116,22 +119,24 @@ export function ShowcaseApp() {
   function changeMode(nextMode: NarrationMode) { setMode(nextMode); window.localStorage.setItem(modeKey, nextMode); }
   function seek(time: number) { if (audioRef.current) audioRef.current.currentTime = time; setCurrentTime(time); narration.seek(time * 1000); }
   function changeVolume(nextVolume: number) { volumeRef.current = nextVolume; setVolume(nextVolume); if (audioRef.current) audioRef.current.volume = nextVolume; }
+  const openHostProfile = useCallback((trigger: HTMLButtonElement) => { hostProfileTriggerRef.current = trigger; setIsHostProfileOpen(true); }, []);
 
   return (
     <main className="shell showcase-shell">
       <DotGrid className="dot-grid--ambient" />
       <section className="stage">
         <SideRays />
-        <TopBar theme={theme} onThemeToggle={setTheme} kugouMobile="" kugouCode="" kugouAccounts={[]} selectedKuGouUserId="" kugouLoginStatus={null} kugouLibraryStatus={null} isKuGouAuthBusy={false} isImportingPlaylist={false} onKuGouMobileChange={() => undefined} onKuGouCodeChange={() => undefined} onKuGouUserSelect={() => undefined} onKuGouCaptchaSend={() => undefined} onKuGouLogin={() => undefined} onKuGouLogout={() => undefined} onHostProfileOpen={() => undefined} showLogin={false} />
+        <TopBar theme={theme} onThemeToggle={setTheme} kugouMobile="" kugouCode="" kugouAccounts={[]} selectedKuGouUserId="" kugouLoginStatus={null} kugouLibraryStatus={null} isKuGouAuthBusy={false} isImportingPlaylist={false} onKuGouMobileChange={() => undefined} onKuGouCodeChange={() => undefined} onKuGouUserSelect={() => undefined} onKuGouCaptchaSend={() => undefined} onKuGouLogin={() => undefined} onKuGouLogout={() => undefined} onHostProfileOpen={openHostProfile} showLogin={false} />
         <section className="claudio-console">
           <ProfileCard now={now} weekday={now.toLocaleDateString("en-US", { weekday: "long" })} dateStamp={now.toLocaleDateString("en-GB")} />
-          <div className="player-strip"><div className="station-spacer" aria-hidden="true" /><Player isPlaying={isPlaying} currentTime={currentTime} duration={duration} volume={volume} isLoadingPick={false} isSpeaking={isSpeaking} narrationMode={mode} hasDjVoice recentPlayed={[]} hasPrevious={showcaseCatalog.length > 1} activeTasteMarks={[]} hasTrack currentTrack={track} nowPlayingDj={{ songId: track.id, say: track.djText, voiceUrl: asset(track.djAudioSrc), source: "rules", status: isSpeaking ? "voice_ready" : "idle" }} audioRef={audioRef} djVoiceAudioRef={djVoiceAudioRef} onPrevious={() => startTrack((trackIndex - 1 + showcaseCatalog.length) % showcaseCatalog.length)} onTogglePlay={togglePlay} onNext={() => startTrack((trackIndex + 1) % showcaseCatalog.length)} onTaste={() => undefined} onStopVoice={() => narration.cancel()} onNarrationModeChange={changeMode} onSeek={seek} onVolumeChange={changeVolume} formatTime={formatTime} onHostProfileOpen={() => undefined} /></div>
+          <div className="player-strip"><div className="station-spacer" aria-hidden="true" /><Player isPlaying={isPlaying} currentTime={currentTime} duration={duration} volume={volume} isLoadingPick={false} isSpeaking={isSpeaking} narrationMode={mode} hasDjVoice recentPlayed={[]} hasPrevious={showcaseCatalog.length > 1} activeTasteMarks={[]} hasTrack currentTrack={track} nowPlayingDj={{ songId: track.id, say: track.djText, voiceUrl: asset(track.djAudioSrc), source: "rules", status: isSpeaking ? "voice_ready" : "idle" }} audioRef={audioRef} djVoiceAudioRef={djVoiceAudioRef} onPrevious={() => startTrack((trackIndex - 1 + showcaseCatalog.length) % showcaseCatalog.length)} onTogglePlay={togglePlay} onNext={() => startTrack((trackIndex + 1) % showcaseCatalog.length)} onTaste={() => undefined} onStopVoice={() => narration.cancel()} onNarrationModeChange={changeMode} onSeek={seek} onVolumeChange={changeVolume} formatTime={formatTime} onHostProfileOpen={openHostProfile} /></div>
           <PlaylistQueue playlist={playlist} queue={queue} currentTrack={trackMap.get(track.id) ?? null} trackMap={trackMap} onSelectPick={(pick: RadioPick) => startTrack(showcaseCatalog.findIndex((item) => item.id === pick.songId))} />
           <AudioPlayer audioRef={audioRef} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onLoadedMetadata={setDuration} onTimeUpdate={setCurrentTime} onEnded={() => narration.cancel()} />
           {next.id !== track.id && <audio key={next.id} src={asset(next.musicSrc)} preload="metadata" />}
         </section>
         {!entered && <div className="showcase-entry-gate"><div><span>STATIC BROADCAST</span><h2>Claudio</h2><p>Showcase</p><button type="button" onClick={togglePlay}>进入电台</button></div></div>}
       </section>
+      <HostProfileDialog open={isHostProfileOpen} onClose={() => setIsHostProfileOpen(false)} returnFocusRef={hostProfileTriggerRef} currentTrack={trackMap.get(track.id) ?? null} isPlaying={isPlaying} nowPlayingDj={{ songId: track.id, say: track.djText, voiceUrl: asset(track.djAudioSrc), source: "rules", status: isSpeaking ? "voice_ready" : "idle" }} libraryCount={showcaseCatalog.length} todayPlayCount={0} gptOnline={false} fishStatus={isSpeaking ? "online" : "standby"} kugouOnline={false} />
     </main>
   );
 }

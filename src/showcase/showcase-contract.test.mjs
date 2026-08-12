@@ -52,6 +52,16 @@ test("showcase keeps private actions hidden without replacing the shared radio l
   const stylesheet = await read("./showcase.css");
   assert.doesNotMatch(stylesheet, /showcase-dj-line/);
   assert.match(stylesheet, /\.taste-controls[\s\S]*display: none/);
+  assert.doesNotMatch(stylesheet, /\.voice-panel-backdrop\s*\{\s*display:\s*none/);
+});
+
+test("showcase restores the radio's host-profile and narration-panel entry paths", async () => {
+  const app = await read("./ShowcaseApp.tsx");
+  assert.match(app, /import \{ HostProfileDialog \}/);
+  assert.match(app, /const \[isHostProfileOpen, setIsHostProfileOpen\] = useState\(false\)/);
+  assert.match(app, /onHostProfileOpen=\{openHostProfile\}/);
+  assert.match(app, /<HostProfileDialog/);
+  assert.doesNotMatch(app, /onHostProfileOpen=\{\(\) => undefined\}/);
 });
 
 test("showcase keeps a 9:16-safe shared stage at portrait review widths", async () => {

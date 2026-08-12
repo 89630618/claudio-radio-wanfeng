@@ -90,3 +90,9 @@
 - `npm run showcase:validate:release` remains intentionally red: the catalog has one self-generated placeholder instead of the required five cleared public-web-hostable recordings. This is the only release-content gate that cannot be completed without user-provided rights and assets.
 - Final engineering verification: `npx tsx --test` passed 54 tests; `npm run build`, `npm run smoke`, `npm run build:showcase`, `npm run showcase:validate`, and `npm run showcase:scan-build` all passed.
 - Branch publication follow-up: all five Showcase commits were rewritten with `89630618@users.noreply.github.com` after GitHub rejected the private address. A later branch-only push reached GitHub but the connection was reset on port 443, so the remote branch still requires a retry from a stable GitHub connection. `main` and Pages remain untouched.
+
+## Host And Narration Panel Parity
+
+- Restored the current radio's two viewing paths in Showcase: the top-bar Claudio avatar opens the shared host profile, and the current-song cover opens the shared narration panel. The Claudio avatar in the narration panel also opens the host profile.
+- Showcase supplies only static status to the shared host profile: its catalog count, current pre-generated narration and no GPT, Fish runtime or KuGou session. No private configuration or runtime API request is introduced.
+- Browser verification on `http://127.0.0.1:5176/claudio-radio-wanfeng/`: entering the radio, opening the narration panel, then opening the host profile from that panel all succeeded.
