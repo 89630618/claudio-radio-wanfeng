@@ -1049,6 +1049,27 @@ h1 {
   gap: 9px;
 }
 
+.narration-mode {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  width: min(220px, 100%);
+  min-height: 30px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.narration-mode button {
+  border: 0;
+  border-radius: 0;
+  padding: 6px 8px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 11px;
+}
+
+.narration-mode button + button { border-left: 1px solid var(--line); }
+.narration-mode button.active { color: var(--ink); background: var(--mint); }
+
 .player-strip .icon-button {
   width: 32px;
   height: 32px;

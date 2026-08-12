@@ -2,6 +2,7 @@ import { CSSProperties, useEffect, useMemo, useRef, useState, type RefObject } f
 import { Heart, Loader2, Pause, Play, SkipBack, SkipForward, Square, Volume2 } from "lucide-react";
 import { AnimatedContent } from "./AnimatedContent";
 import { ElasticVolumeSlider } from "./ElasticVolumeSlider";
+import type { NarrationMode } from "../playback/narration-machine";
 import "./Player.transcript.css";
 
 type PlayerProps = {
@@ -11,6 +12,7 @@ type PlayerProps = {
   volume: number;
   isLoadingPick: boolean;
   isSpeaking: boolean;
+  narrationMode: NarrationMode;
   hasDjVoice: boolean;
   recentPlayed: { songId: string }[];
   hasPrevious: boolean;
@@ -31,6 +33,7 @@ type PlayerProps = {
   onNext: () => void;
   onTaste: (action: string) => void;
   onStopVoice: () => void;
+  onNarrationModeChange: (mode: NarrationMode) => void;
   onSeek: (time: number) => void;
   onVolumeChange: (volume: number) => void;
   formatTime: (seconds: number) => string;
@@ -44,6 +47,7 @@ export function Player({
   volume,
   isLoadingPick,
   isSpeaking,
+  narrationMode,
   hasDjVoice,
   hasPrevious,
   activeTasteMarks,
@@ -57,6 +61,7 @@ export function Player({
   onNext,
   onTaste,
   onStopVoice,
+  onNarrationModeChange,
   onSeek,
   onVolumeChange,
   formatTime,
@@ -365,6 +370,11 @@ export function Player({
             <i key={index} style={{ "--signal-index": index, "--signal-delay": `${index * -47}ms` } as CSSProperties & Record<string, string | number>} />
           ))}
         </div>
+      </div>
+
+      <div className="narration-mode" role="radiogroup" aria-label="Narration mode">
+        <button type="button" role="radio" aria-checked={narrationMode === "vocal_start"} className={narrationMode === "vocal_start" ? "active" : ""} onClick={() => onNarrationModeChange("vocal_start")}>人声起点</button>
+        <button type="button" role="radio" aria-checked={narrationMode === "intro_overlay"} className={narrationMode === "intro_overlay" ? "active" : ""} onClick={() => onNarrationModeChange("intro_overlay")}>压歌头</button>
       </div>
 
       <div className="transport">

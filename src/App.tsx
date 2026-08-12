@@ -33,10 +33,13 @@ import { HostProfileDialog } from "./components/HostProfileDialog";
 import { DotGrid } from "./components/DotGrid";
 import { ClickSpark } from "./components/ClickSpark";
 import { SideRays } from "./components/SideRays";
+import { useNarrationPlayback } from "./playback/useNarrationPlayback";
+import type { NarrationMode } from "./playback/narration-machine";
 import type { Health, PlaylistSuggestion } from "./types";
 
 const playlistStorageKey = "claudio.activePlaylist";
 const playlistQueueStorageKey = "claudio.radioQueue";
+const narrationModeStorageKey = "claudio:narration-mode";
 
 type PreparedDjLine = {
   songId: string;
@@ -63,6 +66,12 @@ function readStoredJson<T>(key: string, fallback: T): T {
   }
 }
 
+function readNarrationMode(): NarrationMode {
+  if (typeof window === "undefined") return "intro_overlay";
+  const stored = window.localStorage.getItem(narrationModeStorageKey);
+  return stored === "vocal_start" || stored === "talk_first" ? "vocal_start" : "intro_overlay";
+}
+
 function insertPickIntoPlaylist(playlist: PlaylistSuggestion, pick: RadioPick, currentSongId?: string) {
   if (currentSongId === pick.songId) return playlist;
 
@@ -82,6 +91,7 @@ export function App() {
     isPlaying,
     setIsPlaying,
     isSpeaking,
+    setIsSpeaking,
     playAudioSoon,
     pauseAudio,
     speak,
@@ -131,6 +141,8 @@ export function App() {
   const [nowPlayingDj, setNowPlayingDj] = useState<NowPlayingDj | null>(null);
   const [djFeedbackMark, setDjFeedbackMark] = useState<"approved" | "rejected" | null>(null);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [narrationMode, setNarrationMode] = useState<NarrationMode>(readNarrationMode);
+  const [isNarrationDucking, setIsNarrationDucking] = useState(false);
   const [isHostProfileOpen, setIsHostProfileOpen] = useState(false);
   const [weatherStatus, setWeatherStatus] = useState("Weather uses fallback location until you allow current location.");
   const [calendarStatus, setCalendarStatus] = useState("Calendar context is loading.");
@@ -146,9 +158,6 @@ export function App() {
   const voiceInputActiveRef = useRef(false);
   const microphoneRef = useRef<MediaStream | null>(null);
   const voiceInputTimeoutRef = useRef<number | undefined>(undefined);
-  const autoPlayedDjVoiceRef = useRef("");
-  const voiceStartDelayRef = useRef(0);
-  const trackStartedAtRef = useRef(0);
   const hostProfileTriggerRef = useRef<HTMLButtonElement>(null);
 
   const openHostProfile = useCallback((trigger: HTMLButtonElement) => {
@@ -171,6 +180,10 @@ export function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    window.localStorage.setItem(narrationModeStorageKey, narrationMode);
+  }, [narrationMode]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -200,8 +213,9 @@ export function App() {
   useEffect(() => {
     const music = audioRef.current;
     const duckedVolume = volume * 0.25;
-    const targetVolume = isSpeaking ? duckedVolume : volume;
-    const fadeDuration = isSpeaking ? 280 : 900;
+    const isDucking = isNarrationDucking || isSpeaking;
+    const targetVolume = isDucking ? duckedVolume : volume;
+    const fadeDuration = isDucking ? 280 : 900;
     const startVolume = music?.volume ?? targetVolume;
     let frame = 0;
     let startedAt: number | undefined;
@@ -220,7 +234,7 @@ export function App() {
     }
 
     return () => window.cancelAnimationFrame(frame);
-  }, [isSpeaking, volume, audioRef, djVoiceAudioRef]);
+  }, [isNarrationDucking, isSpeaking, volume, audioRef, djVoiceAudioRef]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -308,7 +322,7 @@ export function App() {
     unlockVoiceAudio();
   }, [unlockVoiceAudio]);
 
-  const playPreparedDjVoice = useCallback(() => {
+  const playPreparedDjVoice = useCallback((restart = true) => {
     if (isSpeaking) {
       stopVoice();
       djVoiceAudioRef.current?.pause();
@@ -321,30 +335,37 @@ export function App() {
       return;
     }
 
-    void speakAudioUrl(nowPlayingDj.voiceUrl).then(
-      () => setStatus("Fish voice played."),
-      () => setStatus("Use the native DJ voice control to play it.")
+    if (restart) djVoiceAudioRef.current.currentTime = 0;
+    return speakAudioUrl(nowPlayingDj.voiceUrl).then(
+      (played) => {
+        if (played) setStatus("Fish voice played.");
+        return played;
+      },
+      () => {
+        setStatus("Use the native DJ voice control to play it.");
+        return false;
+      }
     );
   }, [nowPlayingDj, isSpeaking, speakAudioUrl, stopVoice]);
 
+  const narrationPlayback = useNarrationPlayback({
+    audioRef,
+    playMusic: (source, restart) => {
+      if (restart && audioRef.current) audioRef.current.currentTime = 0;
+      playAudioSoon(source);
+    },
+    pauseMusic: pauseAudio,
+    playVoice: (restart) => playPreparedDjVoice(restart) ?? Promise.resolve(false),
+    pauseVoice: () => djVoiceAudioRef.current?.pause(),
+    stopVoice,
+    setDucking: setIsNarrationDucking,
+  });
+
   useEffect(() => {
-    if (!nowPlayingDj?.voiceUrl || nowPlayingDj.status !== "voice_ready") return;
-    const playbackKey = `${nowPlayingDj.songId}:${nowPlayingDj.voiceUrl}`;
-    if (autoPlayedDjVoiceRef.current === playbackKey) return;
-    if (voiceStartDelayRef.current > 0 && !isPlaying) return;
-
-    const elapsed = trackStartedAtRef.current ? performance.now() - trackStartedAtRef.current : 0;
-    const delay = Math.max(0, voiceStartDelayRef.current - elapsed);
-    const timer = window.setTimeout(() => {
-      if (autoPlayedDjVoiceRef.current === playbackKey) return;
-      autoPlayedDjVoiceRef.current = playbackKey;
-      void speakAudioUrl(nowPlayingDj.voiceUrl).then((played) => {
-        if (played) setStatus("Fish DJ voice is playing.");
-      });
-    }, delay);
-
-    return () => window.clearTimeout(timer);
-  }, [isPlaying, nowPlayingDj, speakAudioUrl]);
+    if (!currentTrack || nowPlayingDj?.songId !== currentTrack.id) return;
+    if (nowPlayingDj.status === "voice_ready" && nowPlayingDj.voiceUrl) narrationPlayback.voiceReady();
+    if (nowPlayingDj.status === "voice_failed") narrationPlayback.voiceFailed();
+  }, [currentTrack, narrationPlayback, nowPlayingDj]);
 
   const requestAiDjLine = useCallback(async (pick: RadioPick, scene = "") => {
     const runId = djLineRunRef.current + 1;
@@ -466,9 +487,9 @@ export function App() {
       setPlayHistory((items) => [currentPick, ...items.filter((item) => item.songId !== currentPick.songId)].slice(0, 20));
     }
 
+    narrationPlayback.cancel();
+    djLineRunRef.current += 1;
     if (!options.voiceAlreadyReset) stopVoice();
-    voiceStartDelayRef.current = currentPick ? 3000 : 0;
-    trackStartedAtRef.current = 0;
     setCurrentPick(pick);
     setCurrentTrack(track);
     setActiveTasteMarks([]);
@@ -504,7 +525,12 @@ export function App() {
         status: "writing"
       });
     }
-    if (autoPlay) playAudioSoon(`/api/track/${track.id}/stream`);
+    if (autoPlay) {
+      narrationPlayback.select({
+        mode: narrationMode,
+        musicSource: `/api/track/${track.id}/stream`,
+      });
+    }
 
     const todayData = await getToday();
     setToday(todayData.picks);
@@ -541,7 +567,7 @@ export function App() {
         prepareNext();
       }
     }
-  }, [currentPick, playAudioSoon, prepareNextDjLine, radioQueue, requestAiDjLine, stopVoice, trackMap]);
+  }, [currentPick, narrationMode, narrationPlayback, prepareNextDjLine, radioQueue, requestAiDjLine, stopVoice, trackMap]);
 
   const handleNext = useCallback(async (scene = query, options: { autoPlay?: boolean } = {}) => {
     stopVoice();
@@ -593,12 +619,16 @@ export function App() {
       return;
     }
 
-    if (isPlaying) {
+    if (narrationPlayback.phase === "paused") {
+      shouldAutoPlayRef.current = true;
+      narrationPlayback.resume();
+    } else if (isPlaying || isSpeaking || narrationPlayback.phase === "overlay") {
       shouldAutoPlayRef.current = false;
-      pauseAudio();
+      narrationPlayback.pause();
     } else {
       shouldAutoPlayRef.current = true;
-      await audioRef.current?.play();
+      if (narrationPlayback.phase === "music") narrationPlayback.resume();
+      else await audioRef.current?.play();
     }
   }
 
@@ -997,10 +1027,13 @@ export function App() {
               onTogglePlay={togglePlay}
               onNext={() => void handleNext()}
               onTaste={(action) => void handleTaste(action)}
-              onStopVoice={playPreparedDjVoice}
+              onStopVoice={() => narrationPlayback.cancel()}
+              narrationMode={narrationMode}
+              onNarrationModeChange={setNarrationMode}
               onSeek={(time) => {
                 setCurrentTime(time);
                 if (audioRef.current) audioRef.current.currentTime = time;
+                narrationPlayback.seek(time * 1000);
               }}
               onVolumeChange={setVolume}
               formatTime={formatTime}
@@ -1032,10 +1065,7 @@ export function App() {
 
           <AudioPlayer
             audioRef={audioRef}
-            onPlay={() => {
-              trackStartedAtRef.current = performance.now();
-              setIsPlaying(true);
-            }}
+            onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
             onLoadedMetadata={(duration) => setDuration(duration)}
             onTimeUpdate={(time) => setCurrentTime(time)}
