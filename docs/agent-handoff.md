@@ -96,3 +96,127 @@
 - Restored the current radio's two viewing paths in Showcase: the top-bar Claudio avatar opens the shared host profile, and the current-song cover opens the shared narration panel. The Claudio avatar in the narration panel also opens the host profile.
 - Showcase supplies only static status to the shared host profile: its catalog count, current pre-generated narration and no GPT, Fish runtime or KuGou session. No private configuration or runtime API request is introduced.
 - Browser verification on `http://127.0.0.1:5176/claudio-radio-wanfeng/`: entering the radio, opening the narration panel, then opening the host profile from that panel all succeeded.
+
+## Local Preview: Four User-Supplied Clips
+
+### Scope
+
+- The user supplied four commercial-song excerpts and pre-generated DJ audio only for local product testing.
+- They live under ignored `public/private-assets/showcase-local/`; the temporary four-track catalog is intentionally uncommitted.
+- Do not commit, push, deploy, enable Pages, or treat these files as public-web-hosting-cleared content.
+
+### Playback Changes
+
+- `压歌头`: music and pre-generated DJ audio start together; music ducks to 25% over 280ms and recovers over 900ms when narration ends.
+- `人声起点`: music starts at zero; pre-generated DJ narration begins at `vocalStartMs`. A muted in-gesture prime avoids Chromium blocking this later DJ start.
+- Showcase narration remains at recorded `1x` speed. There is no 800ms cutoff and no forced stop when either the music excerpt or narration ends.
+- `vocalStartMs` is now a start marker only. The public validator still enforces files, unique paths, valid timing, size limits, rights metadata and `ASSET-LICENSES.md`, but no longer imposes a narration duration deadline.
+- Separated the importable validator module from its CLI entry point so test runs do not execute the temporary local catalog.
+
+### Verification
+
+- Focused playback and Showcase contract tests: passed.
+- Browser verification at `http://127.0.0.1:5176/claudio-radio-wanfeng/`:
+  - `压歌头` played DJ and music concurrently at `1x`; music volume reached `0.125` from a `0.5` user volume.
+  - `人声起点` started music first, then started the DJ at the recorded marker; both were running at `1x` and music was ducked.
+- `npm run build:showcase`: passed.
+- `npm run showcase:validate` and `npm run showcase:validate:release` intentionally fail for the temporary catalog: the clips share a local cover path, have no generated public license manifest, and do not meet the five-track public release gate. This is the expected protection for local-only media.
+
+### Manual Check
+
+1. Open `http://127.0.0.1:5176/claudio-radio-wanfeng/` and click `进入电台`.
+2. Select `压歌头`, use next/previous, and confirm music and DJ begin together.
+3. Select `人声起点`, then choose the next track; confirm music starts first and the DJ begins at the marked point.
+4. Let a short music clip finish while DJ narration is still active; the DJ should continue naturally.
+
+### Next
+
+- Before public release, replace the temporary catalog and ignored local media with at least five tracks whose specific recordings, covers and DJ files have public-web-hosting rights. Generate `ASSET-LICENSES.md`, then require both validation commands and the build scan to pass.
+
+## Local Playback Corrections
+
+### Changes
+
+- Fixed stale Showcase DJ runs: selecting, skipping or queue-selecting a new track stops the old DJ audio, clears its pending start and invalidates late audio callbacks.
+- `压歌头` now starts music first and starts pre-generated DJ narration after a fixed 3-second lead-in; ducking begins only when narration starts.
+- `人声起点` starts music first and schedules narration at the selected track's `vocalStartMs`. Each selected DJ source is pre-unlocked inside the user gesture so delayed playback is not blocked by Chromium.
+- Protected the pre-unlock callback with a run identifier so a late muted preload callback cannot pause an already-playing narration.
+- The shared transcript panel no longer resets DJ audio time. It observes the real DJ element, keeps the original per-character highlight and scrolls the active paragraph into view while Showcase narration plays.
+
+### Verification
+
+- Focused tests for narration state machine, Showcase contract and transcript behavior: passed (23 tests).
+- `npm run build:showcase`: passed.
+- Browser verification at `http://127.0.0.1:5176/claudio-radio-wanfeng/`:
+  - In `压歌头`, the DJ and music played at normal speed after the lead-in and music ducked to `0.125` from a `0.5` user volume.
+  - Skipping during narration stopped the old `后来` DJ and started only the new `遇见` sources.
+  - In `人声起点`, the new song played while DJ remained paused; after its marker, DJ played at normal speed and music ducked.
+  - The transcript panel showed `Speaking...`, DJ time `28.79s`, transcript time `0:28`, and an active later paragraph. After natural DJ completion it returned to `Preparing...` at `0:00`.
+
+## Local DJ Control Correction
+
+- The DJ button in the main transport now pauses or resumes the current narration audio only. It no longer calls the cancellation path, so it neither restarts nor stops the song.
+- Natural narration completion continues to restore normal song volume while leaving the song's own playback and progress untouched.
+- Verification: focused Player, narration-machine and Showcase tests passed; full `npx tsx --test`, `npm run build`, `npm run smoke`, `npm run build:showcase`, and `git diff --check` passed. No commit, push, deploy, or change to the private `5173` radio was made.
+
+## Local Showcase Vocal Markers And Display Messages
+
+- Updated the four local-only clip markers from user-verified first-vocal positions: `后来` 12s, `遇见` 25s, `逍遥叹` 26s, and `星座书上` 33s. These catalog changes remain local and uncommitted with the ignored test media.
+- Added a Showcase-only, read-only host message panel below the playlist. It reuses the existing radio message presentation without an input, microphone, API call, or conversation runtime. It greets `DJ小王子` by time of day and shows `仅供产品展示，无法和晚风对话噢`.
+- Verification: Showcase contract tests and `npm run build:showcase` passed. The next human check is to refresh the local preview and verify the two messages and each updated vocal-start point by listening.
+
+## Local Showcase Nielong Message
+
+- The read-only display panel now includes the existing user avatar as `奶龙`, with a time-based greeting: `早上/中午/晚上好，我是奶龙`.
+- Added a visible but disabled input field with `仅供展示，暂不支持输入`. It has no form submission, microphone control, API request, or local write path.
+
+## Vocal Start Seeking Rule
+
+- `人声起点` no longer relies on a countdown timer. The music's actual progress starts narration when it reaches the marked first vocal.
+- Seeking to the exact marker starts narration; seeking beyond the marker switches to music-only for that track, so narration is never unexpectedly started after a jump. The three-second `压歌头` delay remains unchanged.
+
+## Delayed Narration Reliability And Mix
+
+- The Showcase DJ audio is now started muted and looped from the user's original radio-entry gesture. At the three-second lead-in or first-vocal marker it resets to the start, exits the muted loop and becomes audible, avoiding a later browser-restricted playback request on individual tracks.
+- Track ducking was relaxed from 25% to 55% of the listener's selected volume during narration. DJ narration remains at the listener's normal volume, so song vocals remain present under the DJ voice.
+- Stop, skip and replacement-track paths explicitly disable the muted loop before stopping the old DJ audio.
+
+## Playback Completion And Mode Labels
+
+- When a Showcase music clip reaches `ended`, the shared audio element is reset to `currentTime = 0` without cancelling narration. This clears the browser's ended state while preserving metadata, so both the transport progress bar and the voice-panel track progress bar can seek again immediately.
+- The two user-facing narration labels are now `人声协同` for `vocal_start` and `开头播放` for `intro_overlay`; internal mode values and behavior are unchanged.
+- Added contract coverage for the post-completion seek path and the new labels.
+- Verification: Showcase contract tests (19 passed), focused playback/transcript tests (16 passed), `npm run build:showcase` passed, `git diff --check` passed. Browser automation could not launch because the local Playwright Chromium executable is not installed; manual verification remains required at `http://127.0.0.1:5176/claudio-radio-wanfeng/`.
+
+## Vocal-Start Lead-In Marker
+
+- In `人声协同` only, the song progress control inside the narration panel now shows a small non-interactive marker two seconds before the configured `vocalStartMs`.
+- The marker is visual only: it does not alter seeking, narration scheduling, or the `开头播放` mode.
+- Verification: focused Showcase, Player transcript and narration-control tests passed (27 total); `npm run build:showcase` passed.
+
+## Release-Readiness Audit
+
+- The local Showcase experience is complete with four user-supplied, local-only clips. They remain under ignored `public/private-assets/showcase-local/` and must not be committed, pushed, deployed, or treated as public-hosting-cleared assets.
+- Current release commands correctly block publication: `showcase:validate` detects the shared local cover path and stale public license manifest; `showcase:validate:release` also rejects fewer than five tracks; `showcase:scan-build` detects local filesystem paths embedded in the temporary media.
+- The public branch baseline remains the self-generated placeholder catalog plus `ASSET-LICENSES.md`. To prepare a real release, import at least five distinct cleared tracks, covers, and pre-generated DJ files through the local importer; then require `showcase:validate`, `showcase:validate:release`, `build:showcase`, and `showcase:scan-build` to pass before any commit or Pages approval.
+- The verification workflow uploads a static artifact only. Pages deployment, Pages settings, public release, commits, and pushes remain intentionally unperformed pending explicit approval and cleared material.
+- Corrected the build scanner to inspect only HTML, CSS, JS and JSON artifacts. It now explicitly rejects `private-assets/` references, rather than attempting to decode binary audio and producing false local-path findings.
+- Final local engineering verification: `npx tsx --test` passed 77 tests; `npm run build`, `npm run smoke`, and `npm run build:showcase` passed. The existing large-chunk advisory remains non-blocking. Smoke logs absent private DJ samples from this isolated worktree, as expected.
+- Added `npm run showcase:release-check` as the repeatable content gate: release validation, Showcase build and static safety scan in one command.
+- Added `.github/workflows/showcase-pages.yml` as a manual-only Pages workflow. Its `deploy` input defaults to `false`; it validates and packages first, and only a deliberate `deploy=true` run reaches `actions/deploy-pages`.
+
+## Future Content And Video Workflow
+
+1. Pull the `showcase` branch on the personal computer and run `npm ci`.
+2. Run `npm run showcase:import` to add or replace a track locally. The importer writes the selected repository only and requires explicit overwrite confirmation.
+3. Run `npm run dev:showcase` and use `http://127.0.0.1:5176/claudio-radio-wanfeng/` for listening checks and 9:16 recording.
+4. After every content change, run `npm run showcase:release-check`. A failure means the catalog, file paths, license manifest or static build is not ready for users.
+5. Only after manual review and explicit release approval, start the Pages workflow with `deploy=true`. No workflow in this branch deploys automatically on push.
+
+## 2026-08-13 Local Clip Review
+
+- Replaced the ignored local `星座书上` music clip with the newly supplied `星座书上3.mp3`; catalog text, DJ audio and `vocalStartMs=33000` were unchanged.
+- New clip duration is about 77.7s; the previous clip was about 39.3s. This leaves substantially more room for the pre-generated narration to finish after the 33s vocal marker.
+- Local four-track validation still reports the expected local-only failures: shared ignored cover path and the public placeholder license manifest. These files were not staged.
+- Fresh verification: `npx tsx --test` 77/77 passed; `npm run build`, `npm run smoke`, and `npm run build:showcase` passed; `git diff --check` passed.
+- The public branch remains safe to publish as code only. The four local song excerpts are not included in GitHub or Pages until their specific public-hosting rights are documented and the release gate passes.

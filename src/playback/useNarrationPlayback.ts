@@ -15,10 +15,8 @@ export function useNarrationPlayback(options: Options) {
   const [state, setState] = useState<NarrationState>(initialNarrationState);
   const stateRef = useRef(state);
   const musicSourceRef = useRef("");
-  const cutoffTimerRef = useRef<number | undefined>(undefined);
   const voiceTimerRef = useRef<number | undefined>(undefined);
   const voiceRunRef = useRef(0);
-  const clearCutoff = useCallback(() => { if (cutoffTimerRef.current !== undefined) window.clearTimeout(cutoffTimerRef.current); cutoffTimerRef.current = undefined; }, []);
   const clearVoiceStart = useCallback(() => { if (voiceTimerRef.current !== undefined) window.clearTimeout(voiceTimerRef.current); voiceTimerRef.current = undefined; }, []);
   const applyRef = useRef<(commands: NarrationCommand[]) => void>(() => undefined);
   const dispatchRef = useRef<(event: Parameters<typeof transitionNarration>[1]) => void>(() => undefined);
@@ -32,9 +30,7 @@ export function useNarrationPlayback(options: Options) {
 
   const apply = useCallback((commands: NarrationCommand[]) => {
     for (const command of commands) {
-      if (command.type === "clear_cutoff") clearCutoff();
-      else if (command.type === "schedule_cutoff") { clearCutoff(); cutoffTimerRef.current = window.setTimeout(() => dispatchRef.current({ type: "cutoff" }), Math.max(0, command.atMs - (options.audioRef.current?.currentTime ?? 0) * 1000)); }
-      else if (command.type === "clear_voice_start") clearVoiceStart();
+      if (command.type === "clear_voice_start") clearVoiceStart();
       else if (command.type === "schedule_voice_start") { clearVoiceStart(); voiceTimerRef.current = window.setTimeout(() => dispatchRef.current({ type: "voice_start" }), Math.max(0, command.atMs - (options.audioRef.current?.currentTime ?? 0) * 1000)); }
       else if (command.type === "stop_voice") { voiceRunRef.current += 1; options.stopVoice(); }
       else if (command.type === "pause_voice") options.pauseVoice();
@@ -49,20 +45,21 @@ export function useNarrationPlayback(options: Options) {
       else if (command.type === "duck_music") options.setDucking(true);
       else if (command.type === "restore_music") options.setDucking(false);
     }
-  }, [clearCutoff, clearVoiceStart, options]);
+  }, [clearVoiceStart, options]);
 
   applyRef.current = apply;
   dispatchRef.current = dispatch;
-  useEffect(() => () => { clearCutoff(); clearVoiceStart(); voiceRunRef.current += 1; }, [clearCutoff, clearVoiceStart]);
+  useEffect(() => () => { clearVoiceStart(); voiceRunRef.current += 1; }, [clearVoiceStart]);
 
   return {
     phase: state.phase,
     activeMode: state.mode,
-    select: ({ mode, musicSource, vocalStartMs, stopMusicOnVoiceEnd = false }: { mode: NarrationMode; musicSource: string; vocalStartMs?: number; stopMusicOnVoiceEnd?: boolean }) => { musicSourceRef.current = musicSource; dispatch({ type: "select", mode, voiceReady: false, vocalStartMs, stopMusicOnVoiceEnd }); },
+    select: ({ mode, musicSource, vocalStartMs, introDelayMs, stopMusicOnVoiceEnd = false }: { mode: NarrationMode; musicSource: string; vocalStartMs?: number; introDelayMs?: number; stopMusicOnVoiceEnd?: boolean }) => { musicSourceRef.current = musicSource; dispatch({ type: "select", mode, voiceReady: false, vocalStartMs, introDelayMs, stopMusicOnVoiceEnd }); },
     voiceReady: () => dispatch({ type: "voice_ready" }),
     voiceFailed: () => dispatch({ type: "voice_failed" }),
     pause: () => dispatch({ type: "pause" }),
     resume: () => dispatch({ type: "resume" }),
+    progress: (positionMs: number) => dispatch({ type: "progress", positionMs }),
     seek: (positionMs: number) => dispatch({ type: "seek", positionMs }),
     cancel: () => dispatch({ type: "cancel" }),
   };

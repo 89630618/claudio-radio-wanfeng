@@ -10,3 +10,7 @@ test("rejects private runtime references from Showcase output", () => {
 test("allows only relative static references in Showcase output", () => {
   assert.deepEqual(scanBuildText('assets/index.js showcase/tracks/demo-signal/music.wav'), []);
 });
+
+test("rejects private preview asset references without inspecting binary media", () => {
+  assert.deepEqual(scanBuildText('"musicSrc":"private-assets/showcase-local/demo/music.mp3"'), ["private preview asset"]);
+});

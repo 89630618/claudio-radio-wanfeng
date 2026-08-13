@@ -3,6 +3,29 @@
   margin-top: 0;
 }
 
+.voice-song-progress-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.voice-song-progress-wrap .voice-song-progress {
+  width: 100%;
+}
+
+.vocal-start-marker {
+  position: absolute;
+  top: 50%;
+  left: var(--vocal-start-marker);
+  width: 6px;
+  height: 6px;
+  border: 1px solid #f7f3e9;
+  border-radius: 50%;
+  background: #147f5b;
+  box-shadow: 0 0 0 2px rgba(20, 127, 91, 0.28);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
 .voice-wave {
   gap: 1px;
 }

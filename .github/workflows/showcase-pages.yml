@@ -1,0 +1,46 @@
+name: Prepare or deploy Claudio Showcase
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy the already-validated Showcase to GitHub Pages
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  verify-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx tsx --test
+      - run: npm run smoke
+      - run: npm run showcase:validate:release
+      - run: npm run build
+      - run: npm run build:showcase
+      - run: npm run showcase:scan-build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-showcase
+
+  deploy:
+    if: inputs.deploy == 'true'
+    needs: verify-and-package
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,5 +1,5 @@
 import { CSSProperties, useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { Heart, Loader2, Pause, Play, SkipBack, SkipForward, Square, Volume2 } from "lucide-react";
+import { Heart, Loader2, Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react";
 import { AnimatedContent } from "./AnimatedContent";
 import { ElasticVolumeSlider } from "./ElasticVolumeSlider";
 import type { NarrationMode } from "../playback/narration-machine";
@@ -13,6 +13,7 @@ type PlayerProps = {
   isLoadingPick: boolean;
   isSpeaking: boolean;
   narrationMode: NarrationMode;
+  vocalStartMs?: number;
   hasDjVoice: boolean;
   recentPlayed: { songId: string }[];
   hasPrevious: boolean;
@@ -48,6 +49,7 @@ export function Player({
   isLoadingPick,
   isSpeaking,
   narrationMode,
+  vocalStartMs,
   hasDjVoice,
   hasPrevious,
   activeTasteMarks,
@@ -84,10 +86,13 @@ export function Player({
   const hasCurrentDj = Boolean(nowPlayingDj && nowPlayingDj.songId === currentTrack?.id);
   const djLine = hasCurrentDj ? nowPlayingDj!.say : "";
   const djVoiceUrl = hasCurrentDj ? nowPlayingDj!.voiceUrl : "";
-  const isVoiceActive = isVoicePlaying;
+  const isVoiceActive = isVoicePlaying || isSpeaking;
   const isSongWaveActive = isPlaying;
   const voiceStatus = hasCurrentDj ? nowPlayingDj!.status : "idle";
   const isVoicePreparing = voiceStatus === "writing" || voiceStatus === "voice_preparing";
+  const vocalStartMarker = narrationMode === "vocal_start" && duration > 0 && vocalStartMs !== undefined
+    ? Math.min(100, Math.max(0, ((vocalStartMs - 2000) / 1000 / duration) * 100))
+    : null;
   const footerWaveShape = useMemo(
     () => Array.from({ length: 68 }, (_, index) => {
       const pulse = 0.34 + Math.abs(Math.sin(index * 0.63)) * 0.28;
@@ -124,10 +129,10 @@ export function Player({
   const activeTranscriptIndex = transcriptLineMeta.findIndex((item) => spokenCharIndex >= item.start && spokenCharIndex < item.end);
 
   useEffect(() => {
-    if (isVoicePlaying && activeTranscriptIndex >= 0) {
+    if (isVoiceActive && activeTranscriptIndex >= 0) {
       activeTranscriptRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
     }
-  }, [activeTranscriptIndex, isVoicePlaying]);
+  }, [activeTranscriptIndex, isVoiceActive]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setClockTime(new Date()), 1000);
@@ -138,10 +143,9 @@ export function Player({
     const audio = djVoiceAudioRef.current;
     if (!audio) return;
 
-    audio.currentTime = 0;
-    setVoiceCurrentTime(0);
-    setVoiceDuration(0);
-    setIsVoicePlaying(false);
+    setVoiceCurrentTime(audio.currentTime || 0);
+    setVoiceDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
+    setIsVoicePlaying(!audio.paused && !audio.ended);
 
     const updateTime = () => setVoiceCurrentTime(audio.currentTime || 0);
     const updateDuration = () => setVoiceDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
@@ -191,6 +195,24 @@ export function Player({
       voiceProgressFrameRef.current = undefined;
     };
   }, [djVoiceAudioRef, djVoiceUrl]);
+
+  useEffect(() => {
+    const audio = djVoiceAudioRef.current;
+    if (!audio || !isSpeaking || audio.paused || audio.ended) return;
+
+    setIsVoicePlaying(true);
+    const sync = () => {
+      if (audio.paused || audio.ended) return;
+      setVoiceCurrentTime(audio.currentTime || 0);
+      voiceProgressFrameRef.current = requestAnimationFrame(sync);
+    };
+    voiceProgressFrameRef.current = requestAnimationFrame(sync);
+
+    return () => {
+      if (voiceProgressFrameRef.current) cancelAnimationFrame(voiceProgressFrameRef.current);
+      voiceProgressFrameRef.current = undefined;
+    };
+  }, [djVoiceAudioRef, djVoiceUrl, isSpeaking]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -373,8 +395,8 @@ export function Player({
       </div>
 
       <div className="narration-mode" role="radiogroup" aria-label="Narration mode">
-        <button type="button" role="radio" aria-checked={narrationMode === "vocal_start"} className={narrationMode === "vocal_start" ? "active" : ""} onClick={() => onNarrationModeChange("vocal_start")}>人声起点</button>
-        <button type="button" role="radio" aria-checked={narrationMode === "intro_overlay"} className={narrationMode === "intro_overlay" ? "active" : ""} onClick={() => onNarrationModeChange("intro_overlay")}>压歌头</button>
+        <button type="button" role="radio" aria-checked={narrationMode === "vocal_start"} className={narrationMode === "vocal_start" ? "active" : ""} onClick={() => onNarrationModeChange("vocal_start")}>人声协同</button>
+        <button type="button" role="radio" aria-checked={narrationMode === "intro_overlay"} className={narrationMode === "intro_overlay" ? "active" : ""} onClick={() => onNarrationModeChange("intro_overlay")}>开头播放</button>
       </div>
 
       <div className="transport">
@@ -387,8 +409,8 @@ export function Player({
         <button className="icon-button secondary" onClick={onNext} disabled={isLoadingPick} title="Next" aria-label="Next">
           {isLoadingPick ? <Loader2 className="spin" /> : <SkipForward />}
         </button>
-        <button className="icon-button secondary" onClick={onStopVoice} disabled={!isSpeaking && !hasDjVoice} title={isSpeaking ? "Stop voice" : hasDjVoice ? "Play DJ voice" : "DJ voice is preparing"} aria-label={isSpeaking ? "Stop voice" : "DJ voice"}>
-          {isSpeaking ? <Square /> : <Volume2 />}
+        <button className="icon-button secondary" onClick={() => void handleVoiceToggle()} disabled={!hasDjVoice} title={isVoicePlaying ? "Pause DJ narration" : "Resume DJ narration"} aria-label={isVoicePlaying ? "Pause DJ narration" : "Resume DJ narration"}>
+          {isVoicePlaying ? <Pause /> : <Volume2 />}
         </button>
       </div>
 
@@ -443,17 +465,20 @@ export function Player({
                 <button type="button" onClick={onTogglePlay} aria-label={isPlaying ? "Pause track" : "Play track"}>
                   {isPlaying ? <Pause /> : <Play />}
                 </button>
-                <input
-                  className="voice-song-progress"
-                  aria-label="Track playback progress"
-                  type="range"
-                  min="0"
-                  max={duration || 0}
-                  step="1"
-                  value={currentTime}
-                  onChange={(event) => onSeek(Number(event.target.value))}
-                  style={{ "--progress": `${progress}%` } as CSSProperties & Record<string, string>}
-                />
+                <div className="voice-song-progress-wrap">
+                  <input
+                    className="voice-song-progress"
+                    aria-label="Track playback progress"
+                    type="range"
+                    min="0"
+                    max={duration || 0}
+                    step="1"
+                    value={currentTime}
+                    onChange={(event) => onSeek(Number(event.target.value))}
+                    style={{ "--progress": `${progress}%` } as CSSProperties & Record<string, string>}
+                  />
+                  {vocalStartMarker !== null && <span className="vocal-start-marker" style={{ "--vocal-start-marker": `${vocalStartMarker}%` } as CSSProperties & Record<string, string>} aria-label="Narration starts in two seconds" />}
+                </div>
                 <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
               </div>
               <div className="voice-transcript">

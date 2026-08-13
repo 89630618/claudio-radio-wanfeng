@@ -14,19 +14,16 @@ function inside(publicDir: string, value: string) {
   const relation = relative(publicDir, absolute);
   return relation && !relation.startsWith("..") && !isAbsolute(relation) ? absolute : null;
 }
-
 export function renderAssetLicenses(catalog: ShowcaseTrack[]) {
   const lines = ["# Showcase Asset Licenses", "", "These entries apply to Showcase media only. They are not automatically covered by the repository Apache-2.0 license.", ""];
   for (const track of catalog) lines.push(`## ${track.artist} - ${track.title}`, "", `- Track ID: \`${track.id}\``, `- Music: \`${track.musicSrc}\``, `- Cover: \`${track.coverSrc}\``, `- DJ audio: \`${track.djAudioSrc}\``, `- License: ${track.rights.license}`, `- Source: ${track.rights.sourceUrl}`, `- Attribution: ${track.rights.attribution}`, `- Scope: ${track.rights.scope}`, `- Verified: ${track.rights.verifiedAt}`, "");
   return `${lines.join("\n").trim()}\n`;
 }
-
 async function audioDuration(path: string) {
   const metadata = await parseFile(path, { duration: true });
   if (!metadata.format.duration || !Number.isFinite(metadata.format.duration)) throw new Error("duration unavailable");
   return metadata.format.duration * 1000;
 }
-
 export async function validateShowcase(catalog: ShowcaseTrack[], options: Options) {
   const errors: string[] = [];
   const ids = new Set<string>();
@@ -50,17 +47,9 @@ export async function validateShowcase(catalog: ShowcaseTrack[], options: Option
       if (!absolute) { errors.push(`${track.id}: invalid ${kind} path: ${path}`); continue; }
       try { const info = await stat(absolute); if (!info.isFile()) errors.push(`${track.id}: ${kind} is not a file`); if (kind === "music" && info.size > (options.maxMusicBytes ?? musicLimit)) errors.push(`${track.id}: music exceeds the 20 MiB size limit`); } catch { errors.push(`${track.id}: missing ${kind}: ${path}`); }
     }
-    const dj = inside(options.publicDir, track.djAudioSrc);
     const music = inside(options.publicDir, track.musicSrc);
-    if (dj) try { if (await readDuration(dj) / 0.86 + 800 > track.vocalStartMs) errors.push(`${track.id}: DJ duration at 0.86 speed must end at least 800ms before vocalStartMs`); } catch (error) { errors.push(`${track.id}: cannot read DJ audio duration (${error instanceof Error ? error.message : "unknown"})`); }
     if (music) try { if (track.vocalStartMs >= await readDuration(music)) errors.push(`${track.id}: vocalStartMs must be inside the music clip`); } catch (error) { errors.push(`${track.id}: cannot read music duration (${error instanceof Error ? error.message : "unknown"})`); }
   }
   if (clean(options.licensesText) !== clean(renderAssetLicenses(catalog))) errors.push("ASSET-LICENSES.md is out of date");
   return errors;
 }
-
-const root = resolve(import.meta.dirname, "../..");
-const release = process.argv.includes("--release");
-const licensesText = await readFile(resolve(root, "ASSET-LICENSES.md"), "utf8").catch(() => "");
-const errors = await validateShowcase(showcaseCatalog, { publicDir: resolve(root, "public"), licensesText, minTracks: release ? 5 : 1, rejectPlaceholder: release });
-if (errors.length) { for (const error of errors) console.error(`ERROR ${error}`); process.exitCode = 1; } else console.log(`Showcase catalog valid (${showcaseCatalog.length} track${showcaseCatalog.length === 1 ? "" : "s"}).`);

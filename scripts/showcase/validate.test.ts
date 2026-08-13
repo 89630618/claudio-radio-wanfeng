@@ -11,17 +11,21 @@ function track(overrides: Partial<ShowcaseTrack> = {}): ShowcaseTrack {
 }
 async function fixture() { const root = await mkdtemp(join(tmpdir(), "claudio-showcase-")); const folder = join(root, "showcase", "tracks", "test-track"); await mkdir(folder, { recursive: true }); await Promise.all([writeFile(join(folder, "music.wav"), "music"), writeFile(join(folder, "cover.jpg"), "cover"), writeFile(join(folder, "dj.wav"), "voice")]); return root; }
 
-test("validator accepts a cleared track whose narration fits before vocals", async () => {
-  const publicDir = await fixture(); const catalog = [track()];
-  assert.deepEqual(await validateShowcase(catalog, { publicDir, licensesText: renderAssetLicenses(catalog), readAudioDurationMs: async (path) => path.endsWith("dj.wav") ? 1200 : 6000 }), []);
+test("importing the validator does not validate the active local catalog", () => {
+  assert.ok(typeof validateShowcase === "function");
 });
 
-test("validator rejects duplicate paths, missing rights, late narration, and outdated licenses", async () => {
+test("validator accepts a cleared track even when its narration continues past vocalStartMs", async () => {
+  const publicDir = await fixture(); const catalog = [track()];
+  assert.deepEqual(await validateShowcase(catalog, { publicDir, licensesText: renderAssetLicenses(catalog), readAudioDurationMs: async (path) => path.endsWith("dj.wav") ? 3000 : 6000 }), []);
+});
+
+test("validator rejects duplicate paths, missing rights, oversized music, and outdated licenses", async () => {
   const publicDir = await fixture(); const first = track({ vocalStartMs: 1800 }); const second = track({ id: "second", rights: { ...first.rights, status: "pending" } as never });
   const errors = await validateShowcase([first, second], { publicDir, licensesText: "outdated", maxMusicBytes: 2, readAudioDurationMs: async () => 1200 });
   assert.ok(errors.some((error) => error.includes("duplicate asset path")));
   assert.ok(errors.some((error) => error.includes("rights.status")));
-  assert.ok(errors.some((error) => error.includes("800ms")));
+  assert.ok(!errors.some((error) => error.includes("800ms")));
   assert.ok(errors.some((error) => error.includes("size limit")));
   assert.ok(errors.some((error) => error.includes("ASSET-LICENSES.md")));
 });

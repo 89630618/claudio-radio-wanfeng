@@ -185,4 +185,10 @@ The Showcase preserves the Claudio radio interface, player, queue, theme and nar
 
 The full local product remains the place for real-time generation, private configuration, personalization and local music workflows. The repository contains only a self-generated placeholder Showcase asset until cleared, public-web-hostable recordings and artwork are provided.
 
+### Updating Showcase Content
+
+To replace or add a track on your own computer, run `npm run showcase:import`. The local importer runs at `http://127.0.0.1:4174`, writes only to the selected repository directory, and asks for confirmation before replacing an existing track. After listening locally with `npm run dev:showcase`, run `npm run showcase:release-check`; it must pass before a track is eligible for Pages.
+
+The Pages workflow is manual and defaults to `deploy=false`. It first runs the full release check, then uploads the static artifact. Deployment is only requested by explicitly starting the workflow with `deploy=true`, after the catalog, licenses and recorded clips have been reviewed.
+
 Claudio 是独立项目与虚构主持人名称，不隶属 Anthropic 或 Claude 产品。音乐、平台服务与模型 API 均为使用者自行配置的外部依赖。

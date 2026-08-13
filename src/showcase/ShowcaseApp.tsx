@@ -7,6 +7,7 @@ import { PlaylistQueue } from "../components/PlaylistQueue";
 import { DotGrid } from "../components/DotGrid";
 import { SideRays } from "../components/SideRays";
 import { HostProfileDialog } from "../components/HostProfileDialog";
+import { ShowcaseMessagePanel } from "./ShowcaseMessagePanel";
 import type { NarrationMode } from "../playback/narration-machine";
 import { useNarrationPlayback } from "../playback/useNarrationPlayback";
 import { showcaseCatalog } from "./catalog";
@@ -23,6 +24,7 @@ export function ShowcaseApp() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const djVoiceAudioRef = useRef<HTMLAudioElement | null>(null);
   const activeTrackRef = useRef<ShowcaseTrack>(showcaseCatalog[0]);
+  const voiceRunRef = useRef(0);
   const fadeFrameRef = useRef<number | undefined>(undefined);
   const volumeRef = useRef(0.5);
   const hostProfileTriggerRef = useRef<HTMLButtonElement>(null);
@@ -62,7 +64,7 @@ export function ShowcaseApp() {
     if (!music) return;
     if (fadeFrameRef.current !== undefined) cancelAnimationFrame(fadeFrameRef.current);
     const start = music.volume;
-    const target = volumeRef.current * (ducking ? 0.25 : 1);
+    const target = volumeRef.current * (ducking ? 0.55 : 1);
     const durationMs = ducking ? 280 : 900;
     const began = performance.now();
     const update = (time: number) => { const progress = Math.min(1, (time - began) / durationMs); music.volume = start + (target - start) * progress; if (progress < 1) fadeFrameRef.current = requestAnimationFrame(update); };
@@ -72,29 +74,62 @@ export function ShowcaseApp() {
   const playMusic = useCallback((source: string, restart: boolean) => {
     const music = audioRef.current;
     if (!music) return;
-    if (music.src !== source) { music.src = source; music.load(); }
-    if (restart) music.currentTime = 0;
-    music.volume = volumeRef.current;
-    void music.play().catch(() => setIsPlaying(false));
+    const begin = () => {
+      if (restart) music.currentTime = 0;
+      music.volume = volumeRef.current;
+      void music.play().catch(() => setIsPlaying(false));
+    };
+    if (music.src !== source) {
+      music.addEventListener("canplay", begin, { once: true });
+      music.src = source;
+      music.load();
+      return;
+    }
+    begin();
   }, []);
 
-  const stopVoice = useCallback(() => { const voice = djVoiceAudioRef.current; if (voice) { voice.pause(); voice.currentTime = 0; } setIsSpeaking(false); }, []);
+  const primeVoice = useCallback((source: string) => {
+    const voice = djVoiceAudioRef.current;
+    if (!voice) return;
+    const primeRun = ++voiceRunRef.current;
+    const url = asset(source);
+    voice.loop = true;
+    voice.muted = true;
+    voice.src = url;
+    voice.currentTime = 0;
+    void voice.play().then(() => {
+      if (primeRun !== voiceRunRef.current || !voice.muted) return;
+    }).catch(() => {
+      if (primeRun === voiceRunRef.current) voice.loop = false;
+    });
+  }, []);
+
+  const stopVoice = useCallback(() => { voiceRunRef.current += 1; const voice = djVoiceAudioRef.current; if (voice) { voice.loop = false; voice.onended = null; voice.onerror = null; voice.pause(); voice.currentTime = 0; } setIsSpeaking(false); }, []);
   const playVoice = useCallback((restart: boolean) => {
     const voice = djVoiceAudioRef.current;
     const selected = activeTrackRef.current;
     if (!voice || !selected) return Promise.resolve(false);
     const source = asset(selected.djAudioSrc);
-    if (voice.src !== source) { voice.src = source; voice.load(); }
-    if (restart) voice.currentTime = 0;
-    voice.playbackRate = 0.86;
-    voice.preservesPitch = true;
-    setIsSpeaking(true);
+    const runId = ++voiceRunRef.current;
     return new Promise<boolean>((resolve) => {
       let settled = false;
-      const finish = (played: boolean) => { if (settled) return; settled = true; setIsSpeaking(false); resolve(played); };
+      const finish = (played: boolean) => { if (settled || runId !== voiceRunRef.current) return; settled = true; setIsSpeaking(false); resolve(played); };
+      const begin = () => {
+        if (runId !== voiceRunRef.current) return;
+        voice.loop = false;
+        if (restart) voice.currentTime = 0;
+        voice.muted = false;
+        void voice.play().then(() => setIsSpeaking(true)).catch(() => finish(false));
+      };
       voice.onended = () => finish(true);
       voice.onerror = () => finish(false);
-      void voice.play().catch(() => finish(false));
+      if (voice.src !== source) {
+        voice.addEventListener("canplay", begin, { once: true });
+        voice.src = source;
+        voice.load();
+        return;
+      }
+      begin();
     });
   }, []);
 
@@ -106,9 +141,10 @@ export function ShowcaseApp() {
     setCurrentTime(0);
     setDuration(0);
     narration.cancel();
-    narration.select({ mode, musicSource: asset(selected.musicSrc), vocalStartMs: selected.vocalStartMs, stopMusicOnVoiceEnd: true });
+    primeVoice(selected.djAudioSrc);
+    narration.select({ mode, musicSource: asset(selected.musicSrc), vocalStartMs: selected.vocalStartMs, introDelayMs: 3000 });
     narration.voiceReady();
-  }, [mode, narration]);
+  }, [mode, narration, primeVoice]);
 
   function togglePlay() {
     if (!entered) { setEntered(true); startTrack(0); return; }
@@ -119,6 +155,12 @@ export function ShowcaseApp() {
   function changeMode(nextMode: NarrationMode) { setMode(nextMode); window.localStorage.setItem(modeKey, nextMode); }
   function seek(time: number) { if (audioRef.current) audioRef.current.currentTime = time; setCurrentTime(time); narration.seek(time * 1000); }
   function changeVolume(nextVolume: number) { volumeRef.current = nextVolume; setVolume(nextVolume); if (audioRef.current) audioRef.current.volume = nextVolume; }
+  function handleMusicEnded() {
+    const music = audioRef.current;
+    if (music) music.currentTime = 0;
+    setCurrentTime(0);
+    setIsPlaying(false);
+  }
   const openHostProfile = useCallback((trigger: HTMLButtonElement) => { hostProfileTriggerRef.current = trigger; setIsHostProfileOpen(true); }, []);
 
   return (
@@ -129,9 +171,10 @@ export function ShowcaseApp() {
         <TopBar theme={theme} onThemeToggle={setTheme} kugouMobile="" kugouCode="" kugouAccounts={[]} selectedKuGouUserId="" kugouLoginStatus={null} kugouLibraryStatus={null} isKuGouAuthBusy={false} isImportingPlaylist={false} onKuGouMobileChange={() => undefined} onKuGouCodeChange={() => undefined} onKuGouUserSelect={() => undefined} onKuGouCaptchaSend={() => undefined} onKuGouLogin={() => undefined} onKuGouLogout={() => undefined} onHostProfileOpen={openHostProfile} showLogin={false} />
         <section className="claudio-console">
           <ProfileCard now={now} weekday={now.toLocaleDateString("en-US", { weekday: "long" })} dateStamp={now.toLocaleDateString("en-GB")} />
-          <div className="player-strip"><div className="station-spacer" aria-hidden="true" /><Player isPlaying={isPlaying} currentTime={currentTime} duration={duration} volume={volume} isLoadingPick={false} isSpeaking={isSpeaking} narrationMode={mode} hasDjVoice recentPlayed={[]} hasPrevious={showcaseCatalog.length > 1} activeTasteMarks={[]} hasTrack currentTrack={track} nowPlayingDj={{ songId: track.id, say: track.djText, voiceUrl: asset(track.djAudioSrc), source: "rules", status: isSpeaking ? "voice_ready" : "idle" }} audioRef={audioRef} djVoiceAudioRef={djVoiceAudioRef} onPrevious={() => startTrack((trackIndex - 1 + showcaseCatalog.length) % showcaseCatalog.length)} onTogglePlay={togglePlay} onNext={() => startTrack((trackIndex + 1) % showcaseCatalog.length)} onTaste={() => undefined} onStopVoice={() => narration.cancel()} onNarrationModeChange={changeMode} onSeek={seek} onVolumeChange={changeVolume} formatTime={formatTime} onHostProfileOpen={openHostProfile} /></div>
+          <div className="player-strip"><div className="station-spacer" aria-hidden="true" /><Player isPlaying={isPlaying} currentTime={currentTime} duration={duration} volume={volume} isLoadingPick={false} isSpeaking={isSpeaking} narrationMode={mode} vocalStartMs={track.vocalStartMs} hasDjVoice recentPlayed={[]} hasPrevious={showcaseCatalog.length > 1} activeTasteMarks={[]} hasTrack currentTrack={track} nowPlayingDj={{ songId: track.id, say: track.djText, voiceUrl: asset(track.djAudioSrc), source: "rules", status: isSpeaking ? "voice_ready" : "idle" }} audioRef={audioRef} djVoiceAudioRef={djVoiceAudioRef} onPrevious={() => startTrack((trackIndex - 1 + showcaseCatalog.length) % showcaseCatalog.length)} onTogglePlay={togglePlay} onNext={() => startTrack((trackIndex + 1) % showcaseCatalog.length)} onTaste={() => undefined} onStopVoice={() => narration.cancel()} onNarrationModeChange={changeMode} onSeek={seek} onVolumeChange={changeVolume} formatTime={formatTime} onHostProfileOpen={openHostProfile} /></div>
           <PlaylistQueue playlist={playlist} queue={queue} currentTrack={trackMap.get(track.id) ?? null} trackMap={trackMap} onSelectPick={(pick: RadioPick) => startTrack(showcaseCatalog.findIndex((item) => item.id === pick.songId))} />
-          <AudioPlayer audioRef={audioRef} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onLoadedMetadata={setDuration} onTimeUpdate={setCurrentTime} onEnded={() => narration.cancel()} />
+          <ShowcaseMessagePanel now={now} />
+          <AudioPlayer audioRef={audioRef} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onLoadedMetadata={setDuration} onTimeUpdate={(time) => { setCurrentTime(time); narration.progress(time * 1000); }} onEnded={handleMusicEnded} />
           {next.id !== track.id && <audio key={next.id} src={asset(next.musicSrc)} preload="metadata" />}
         </section>
         {!entered && <div className="showcase-entry-gate"><div><span>STATIC BROADCAST</span><h2>Claudio</h2><p>Showcase</p><button type="button" onClick={togglePlay}>进入电台</button></div></div>}

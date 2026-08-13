@@ -14,14 +14,13 @@ export type NarrationState = {
   phase: NarrationPhase;
   mode: NarrationMode | null;
   vocalStartMs?: number;
+  voiceStartMs?: number;
   voiceReady: boolean;
   stopMusicOnVoiceEnd: boolean;
   pausedPhase?: Exclude<NarrationPhase, "idle" | "ended" | "paused">;
 };
 
 export type NarrationCommand =
-  | { type: "clear_cutoff" }
-  | { type: "schedule_cutoff"; atMs: number }
   | { type: "clear_voice_start" }
   | { type: "schedule_voice_start"; atMs: number }
   | { type: "stop_voice" }
@@ -34,15 +33,15 @@ export type NarrationCommand =
   | { type: "restore_music" };
 
 export type NarrationEvent =
-  | { type: "select"; mode: NarrationMode; voiceReady: boolean; vocalStartMs?: number; stopMusicOnVoiceEnd?: boolean }
+  | { type: "select"; mode: NarrationMode; voiceReady: boolean; vocalStartMs?: number; introDelayMs?: number; stopMusicOnVoiceEnd?: boolean }
   | { type: "voice_ready" }
   | { type: "voice_failed" }
   | { type: "voice_start" }
   | { type: "voice_ended" }
   | { type: "pause" }
   | { type: "resume" }
+  | { type: "progress"; positionMs: number }
   | { type: "seek"; positionMs: number }
-  | { type: "cutoff" }
   | { type: "cancel" };
 
 export const initialNarrationState: NarrationState = {
@@ -52,10 +51,6 @@ export const initialNarrationState: NarrationState = {
   stopMusicOnVoiceEnd: false,
 };
 
-function cutoff(vocalStartMs?: number): NarrationCommand[] {
-  return vocalStartMs ? [{ type: "schedule_cutoff", atMs: Math.max(0, vocalStartMs - 800) }] : [];
-}
-
 function startOverlay(state: NarrationState, restartMusic: boolean, restartVoice = true) {
   return {
     state: { ...state, phase: "overlay" as const, pausedPhase: undefined },
@@ -63,14 +58,12 @@ function startOverlay(state: NarrationState, restartMusic: boolean, restartVoice
       ...(restartMusic ? [{ type: "play_music" as const, restart: true }] : []),
       { type: "duck_music" as const },
       { type: "play_voice" as const, restart: restartVoice },
-      ...(state.mode === "intro_overlay" ? cutoff(state.vocalStartMs) : []),
     ],
   };
 }
 
 function finishVoice(state: NarrationState) {
   const commands: NarrationCommand[] = [
-    { type: "clear_cutoff" },
     { type: "clear_voice_start" },
     { type: "stop_voice" },
     { type: "restore_music" },
@@ -82,21 +75,25 @@ function finishVoice(state: NarrationState) {
 export function transitionNarration(state: NarrationState, event: NarrationEvent): { state: NarrationState; commands: NarrationCommand[] } {
   if (event.type === "select") {
     const next: NarrationState = {
-      phase: event.mode === "vocal_start" ? "music_waiting_vocal" : event.voiceReady ? "idle" : "waiting",
+      phase: event.mode === "vocal_start" || (event.mode === "intro_overlay" && (event.introDelayMs ?? 0) > 0)
+        ? "music_waiting_vocal"
+        : event.voiceReady ? "idle" : "waiting",
       mode: event.mode,
       vocalStartMs: event.vocalStartMs,
+      voiceStartMs: event.mode === "intro_overlay" ? (event.introDelayMs ?? 0) : event.vocalStartMs,
       voiceReady: event.voiceReady,
       stopMusicOnVoiceEnd: event.stopMusicOnVoiceEnd ?? false,
     };
-    const commands: NarrationCommand[] = [{ type: "clear_cutoff" }, { type: "clear_voice_start" }, { type: "stop_voice" }];
+    const commands: NarrationCommand[] = [{ type: "clear_voice_start" }, { type: "stop_voice" }];
     if (state.phase !== "idle") commands.push({ type: "pause_music" }, { type: "restore_music" });
 
-    if (event.mode === "vocal_start") {
+    if (event.mode === "vocal_start" || event.mode === "intro_overlay") {
       commands.push({ type: "play_music", restart: true });
-      if (event.vocalStartMs && event.vocalStartMs > 0) {
-        commands.push({ type: "schedule_voice_start", atMs: event.vocalStartMs });
+      if (event.mode === "intro_overlay" && next.voiceStartMs && next.voiceStartMs > 0) {
+        commands.push({ type: "schedule_voice_start", atMs: next.voiceStartMs });
         return { state: next, commands };
       }
+      if (event.mode === "vocal_start") return { state: next, commands };
       if (event.voiceReady) {
         const started = startOverlay(next, false);
         return { state: started.state, commands: [...commands, ...started.commands] };
@@ -123,9 +120,9 @@ export function transitionNarration(state: NarrationState, event: NarrationEvent
     if (!state.voiceReady) return { state: { ...state, phase: "vocal_waiting_voice" }, commands: [] };
     return startOverlay(state, false);
   }
-  if ((event.type === "voice_ended" || event.type === "cutoff") && state.phase === "overlay") return finishVoice(state);
+  if (event.type === "voice_ended" && state.phase === "overlay") return finishVoice(state);
   if (event.type === "pause" && ["music_waiting_vocal", "vocal_waiting_voice", "overlay", "music"].includes(state.phase)) {
-    return { state: { ...state, pausedPhase: state.phase as NarrationState["pausedPhase"], phase: "paused" }, commands: [{ type: "pause_music" }, { type: "pause_voice" }, { type: "clear_cutoff" }, { type: "clear_voice_start" }] };
+    return { state: { ...state, pausedPhase: state.phase as NarrationState["pausedPhase"], phase: "paused" }, commands: [{ type: "pause_music" }, { type: "pause_voice" }, { type: "clear_voice_start" }] };
   }
   if (event.type === "resume" && state.phase === "paused") {
     const phase = state.pausedPhase ?? "music";
@@ -134,13 +131,16 @@ export function transitionNarration(state: NarrationState, event: NarrationEvent
       const started = startOverlay(resumed, false, false);
       return { state: started.state, commands: [{ type: "play_music", restart: false }, ...started.commands] };
     }
-    if (phase === "music_waiting_vocal") return { state: resumed, commands: [{ type: "play_music", restart: false }, ...(state.vocalStartMs ? [{ type: "schedule_voice_start" as const, atMs: state.vocalStartMs }] : [])] };
+    if (phase === "music_waiting_vocal") return { state: resumed, commands: [{ type: "play_music", restart: false }, ...(state.mode === "intro_overlay" && state.voiceStartMs ? [{ type: "schedule_voice_start" as const, atMs: state.voiceStartMs }] : [])] };
     return { state: resumed, commands: [{ type: "play_music", restart: false }] };
   }
-  if (event.type === "seek" && state.vocalStartMs && event.positionMs >= state.vocalStartMs) {
-    if (state.phase === "music_waiting_vocal") return state.voiceReady ? startOverlay(state, false) : { state: { ...state, phase: "vocal_waiting_voice" }, commands: [] };
-    if (state.phase === "overlay" || (state.phase === "paused" && state.pausedPhase === "overlay")) return { state: { ...state, phase: "music", pausedPhase: undefined }, commands: [{ type: "clear_cutoff" }, { type: "clear_voice_start" }, { type: "stop_voice" }, { type: "restore_music" }] };
+  if (event.type === "progress" && state.mode === "vocal_start" && state.vocalStartMs && event.positionMs >= state.vocalStartMs && state.phase === "music_waiting_vocal") {
+    return state.voiceReady ? startOverlay(state, false) : { state: { ...state, phase: "vocal_waiting_voice" }, commands: [] };
   }
-  if (event.type === "cancel") return { state: initialNarrationState, commands: [{ type: "clear_cutoff" }, { type: "clear_voice_start" }, { type: "stop_voice" }, { type: "pause_music" }, { type: "restore_music" }] };
+  if (event.type === "seek" && state.mode === "vocal_start" && state.vocalStartMs && state.phase === "music_waiting_vocal") {
+    if (event.positionMs === state.vocalStartMs) return state.voiceReady ? startOverlay(state, false) : { state: { ...state, phase: "vocal_waiting_voice" }, commands: [] };
+    if (event.positionMs > state.vocalStartMs) return { state: { ...state, phase: "music", pausedPhase: undefined }, commands: [{ type: "clear_voice_start" }, { type: "restore_music" }] };
+  }
+  if (event.type === "cancel") return { state: initialNarrationState, commands: [{ type: "clear_voice_start" }, { type: "stop_voice" }, { type: "pause_music" }, { type: "restore_music" }] };
   return { state, commands: [] };
 }

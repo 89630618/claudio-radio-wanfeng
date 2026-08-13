@@ -17,10 +17,15 @@ test("showcase builds through its own static Vite entry", async () => {
   assert.match(html, /src="\.\.\/src\/showcase\/main\.tsx"/);
   assert.doesNotMatch(main, /\.\.\/App|\.\.\/api/);
   assert.match(packageJson, /"dev:showcase":\s*"npm run build:showcase && vite preview --config vite\.showcase\.config\.ts --host 127\.0\.0\.1 --port 5176"/);
+  assert.match(packageJson, /"showcase:validate":\s*"tsx scripts\/showcase\/validate-cli\.ts"/);
+  assert.match(packageJson, /"showcase:release-check":\s*"npm run showcase:validate:release && npm run build:showcase && npm run showcase:scan-build"/);
 });
 
-test("showcase verification workflow covers the release checks without deploying", async () => {
-  const workflow = await read("../../.github/workflows/showcase-verify.yml");
+test("showcase workflows verify every release gate and keep Pages deployment manually approved", async () => {
+  const [workflow, pagesWorkflow] = await Promise.all([
+    read("../../.github/workflows/showcase-verify.yml"),
+    read("../../.github/workflows/showcase-pages.yml"),
+  ]);
   assert.match(workflow, /npx tsx --test/);
   assert.match(workflow, /npm run smoke/);
   assert.match(workflow, /npm run showcase:validate/);
@@ -29,6 +34,13 @@ test("showcase verification workflow covers the release checks without deploying
   assert.match(workflow, /npm run showcase:scan-build/);
   assert.match(workflow, /actions\/upload-artifact/);
   assert.doesNotMatch(workflow, /deploy-pages|gh-pages|configure-pages/);
+  assert.match(pagesWorkflow, /workflow_dispatch/);
+  assert.match(pagesWorkflow, /deploy:/);
+  assert.match(pagesWorkflow, /default:\s*false/);
+  assert.match(pagesWorkflow, /npm run showcase:validate:release/);
+  assert.match(pagesWorkflow, /npm run showcase:scan-build/);
+  assert.match(pagesWorkflow, /actions\/deploy-pages/);
+  assert.match(pagesWorkflow, /inputs\.deploy\s*==\s*'true'/);
 });
 
 test("showcase keeps the existing radio layout while excluding runtime APIs", async () => {
@@ -42,7 +54,8 @@ test("showcase keeps the existing radio layout while excluding runtime APIs", as
   assert.match(app, /<AudioPlayer/);
   assert.match(app, /进入电台/);
   assert.match(app, /useNarrationPlayback/);
-  assert.match(app, /stopMusicOnVoiceEnd:\s*true/);
+  assert.match(app, /narration\.select\(\{ mode, musicSource:/);
+  assert.doesNotMatch(app, /stopMusicOnVoiceEnd:\s*true/);
   assert.doesNotMatch(app, /showcase-dj-line/);
   assert.doesNotMatch(app, /from\s+["']\.\.\/api["']|fetch\(|\/api\//);
   assert.doesNotMatch(app, /ChatPanel/);
@@ -55,6 +68,28 @@ test("showcase keeps private actions hidden without replacing the shared radio l
   assert.doesNotMatch(stylesheet, /\.voice-panel-backdrop\s*\{\s*display:\s*none/);
 });
 
+test("showcase adds a static host message panel without conversation runtime", async () => {
+  const [app, panel] = await Promise.all([read("./ShowcaseApp.tsx"), read("./ShowcaseMessagePanel.tsx")]);
+  assert.match(app, /<ShowcaseMessagePanel/);
+  assert.match(panel, /DJ小王子/);
+  assert.match(panel, /仅供产品展示，无法和晚风对话噢/);
+  assert.match(panel, /<input[^>]*disabled/);
+  assert.doesNotMatch(panel, /<form|fetch\(|\/api\//);
+});
+
+test("showcase message panel shows the Nielong greeting and a disabled display input", async () => {
+  const panel = await read("./ShowcaseMessagePanel.tsx");
+  assert.match(panel, /user-avatar/);
+  assert.match(panel, /我是奶龙/);
+  assert.match(panel, /<input[^>]*disabled/);
+  assert.match(panel, /仅供展示，暂不支持输入/);
+});
+
+test("showcase build configuration writes a deployable HTML entry", async () => {
+  const config = await read("../../vite.showcase.config.ts");
+  assert.match(config, /outDir:\s*resolve\(__dirname,\s*"dist-showcase"\)/);
+});
+
 test("showcase restores the radio's host-profile and narration-panel entry paths", async () => {
   const app = await read("./ShowcaseApp.tsx");
   assert.match(app, /import \{ HostProfileDialog \}/);
@@ -62,6 +97,89 @@ test("showcase restores the radio's host-profile and narration-panel entry paths
   assert.match(app, /onHostProfileOpen=\{openHostProfile\}/);
   assert.match(app, /<HostProfileDialog/);
   assert.doesNotMatch(app, /onHostProfileOpen=\{\(\) => undefined\}/);
+});
+
+test("showcase waits for newly assigned music and DJ sources before playing", async () => {
+  const app = await read("./ShowcaseApp.tsx");
+  assert.match(app, /music\.addEventListener\("canplay", begin, \{ once: true \}\)/);
+  assert.match(app, /voice\.addEventListener\("canplay", begin, \{ once: true \}\)/);
+});
+
+test("showcase plays local narration at its recorded speed", async () => {
+  const app = await read("./ShowcaseApp.tsx");
+  assert.doesNotMatch(app, /voice\.playbackRate\s*=/);
+});
+
+test("vocal-start mode unlocks the DJ audio from the user's play gesture", async () => {
+  const app = await read("./ShowcaseApp.tsx");
+  assert.match(app, /const primeVoice = useCallback/);
+  assert.match(app, /primeVoice\(selected\.djAudioSrc\);\s*narration\.select/);
+  assert.match(app, /voice\.muted = true/);
+  assert.match(app, /voice\.src = url;\s*voice\.currentTime = 0;\s*void voice\.play\(\)/);
+});
+
+test("showcase delays intro narration by three seconds and invalidates stale DJ runs", async () => {
+  const app = await read("./ShowcaseApp.tsx");
+  assert.match(app, /introDelayMs:\s*3000/);
+  assert.match(app, /const voiceRunRef = useRef\(0\)/);
+  assert.match(app, /const runId = \+\+voiceRunRef\.current/);
+  assert.match(app, /if \(runId !== voiceRunRef\.current\) return/);
+  assert.match(app, /const primeRun = \+\+voiceRunRef\.current/);
+  assert.match(app, /if \(primeRun !== voiceRunRef\.current \|\| !voice\.muted\) return/);
+});
+
+test("showcase drives vocal-start narration from actual music progress", async () => {
+  const app = await read("./ShowcaseApp.tsx");
+  assert.match(app, /onTimeUpdate=\{\(time\) => \{ setCurrentTime\(time\); narration\.progress\(time \* 1000\); \}\}/);
+});
+
+test("showcase starts delayed narration through a muted browser-safe handoff", async () => {
+  const app = await read("./ShowcaseApp.tsx");
+  assert.match(app, /voice\.loop = true;[\s\S]*?voice\.muted = true;[\s\S]*?void voice\.play\(\)/);
+  assert.match(app, /voice\.loop = false;[\s\S]*?voice\.currentTime = 0;[\s\S]*?voice\.muted = false/);
+  assert.match(app, /voice\.loop = false; voice\.onended = null/);
+});
+
+test("showcase preserves audible music beneath narration", async () => {
+  const app = await read("./ShowcaseApp.tsx");
+  assert.match(app, /ducking \? 0\.55 : 1/);
+  assert.doesNotMatch(app, /ducking \? 0\.25 : 1/);
+});
+
+test("a finished music clip remains seekable without cancelling a still-playing narration", async () => {
+  const app = await read("./ShowcaseApp.tsx");
+  assert.match(app, /function handleMusicEnded\(\) \{[\s\S]*?music\.currentTime = 0;[\s\S]*?setCurrentTime\(0\);[\s\S]*?setIsPlaying\(false\);[\s\S]*?\}/);
+  assert.match(app, /<AudioPlayer[\s\S]*onEnded=\{handleMusicEnded\}/);
+  assert.doesNotMatch(app, /<AudioPlayer[\s\S]*onEnded=\{\(\) => narration\.cancel\(\)\}/);
+});
+
+test("shared narration mode controls use the Showcase names", async () => {
+  const player = await read("../components/Player.tsx");
+  assert.match(player, />人声协同<\/button>/);
+  assert.match(player, />开头播放<\/button>/);
+  assert.doesNotMatch(player, />人声起点<\/button>/);
+  assert.doesNotMatch(player, />压歌头<\/button>/);
+});
+
+test("voice panel marks the two-second lead-in before vocal-start narration", async () => {
+  const [app, player, stylesheet] = await Promise.all([
+    read("./ShowcaseApp.tsx"),
+    read("../components/Player.tsx"),
+    read("../components/Player.transcript.css"),
+  ]);
+  assert.match(app, /vocalStartMs=\{track\.vocalStartMs\}/);
+  assert.match(player, /vocalStartMs\?: number/);
+  assert.match(player, /vocalStartMarker/);
+  assert.match(player, /vocalStartMs - 2000/);
+  assert.match(stylesheet, /\.vocal-start-marker/);
+});
+
+test("local catalog marks each supplied clip at its verified first vocal", async () => {
+  const catalog = await read("../../public/showcase/catalog.json");
+  assert.match(catalog, /"id": "local-houlai"[\s\S]*?"vocalStartMs": 12000/);
+  assert.match(catalog, /"id": "local-yujian"[\s\S]*?"vocalStartMs": 25000/);
+  assert.match(catalog, /"id": "local-xiaoyaotan"[\s\S]*?"vocalStartMs": 26000/);
+  assert.match(catalog, /"id": "local-xingzuoshushang"[\s\S]*?"vocalStartMs": 33000/);
 });
 
 test("showcase keeps a 9:16-safe shared stage at portrait review widths", async () => {

@@ -23,6 +23,20 @@ test("active transcript line follows narration progress into view", async () => 
   assert.match(source, /activeTranscriptRef\.current\?\.scrollIntoView\(\{ block: "center", behavior: "smooth" \}\)/);
 });
 
+test("transcript keeps syncing from the real DJ audio while Showcase narration is active", async () => {
+  const source = await readFile(new URL("./Player.tsx", import.meta.url), "utf8");
+
+  assert.match(source, /const isVoiceActive = isVoicePlaying \|\| isSpeaking/);
+  assert.match(source, /if \(!audio \|\| !isSpeaking \|\| audio\.paused \|\| audio\.ended\) return/);
+  assert.match(source, /setVoiceCurrentTime\(audio\.currentTime \|\| 0\)/);
+});
+
+test("transcript observer never resets an already-playing DJ audio element", async () => {
+  const source = await readFile(new URL("./Player.tsx", import.meta.url), "utf8");
+
+  assert.doesNotMatch(source, /if \(!audio\) return;\s*setVoiceCurrentTime\(audio\.currentTime \|\| 0\);\s*audio\.currentTime = 0/);
+});
+
 test("waiting transcript uses a compact Chinese placeholder", async () => {
   const source = await readFile(new URL("./Player.tsx", import.meta.url), "utf8");
 

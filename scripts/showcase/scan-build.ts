@@ -7,7 +7,10 @@ const blocked = [
   ["local absolute path", /[A-Z]:\\|\/Users\/|\/home\//i],
   ["API key field", /(?:AI|FISH|OPENAI)_(?:API_)?KEY/i],
   ["external runtime URL", /https?:\/\/(?!89630618\.github\.io)/i],
+  ["private preview asset", /private-assets\//i],
 ] as const;
+
+const textExtensions = new Set([".css", ".html", ".js", ".json", ".mjs"]);
 
 export function scanBuildText(text: string) {
   return blocked.filter(([, pattern]) => pattern.test(text)).map(([label]) => label);
@@ -22,6 +25,7 @@ async function files(directory: string): Promise<string[]> {
 async function main() {
   const output = resolve(import.meta.dirname, "../../dist-showcase");
   const findings = (await Promise.all((await files(output)).map(async (file) => {
+    if (!textExtensions.has(extname(file))) return { file, findings: [] };
     const runtimeDocument = [".html", ".css"].includes(extname(file));
     const result = scanBuildText(await readFile(file, "utf8").catch(() => ""));
     return { file, findings: result.filter((finding) => finding !== "external runtime URL" || runtimeDocument) };
