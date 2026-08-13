@@ -35,7 +35,7 @@ jobs:
           path: dist-showcase
 
   deploy:
-    if: inputs.deploy == 'true'
+    if: inputs.deploy
     needs: verify-and-package
     environment:
       name: github-pages
