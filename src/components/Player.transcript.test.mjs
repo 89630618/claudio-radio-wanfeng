@@ -37,6 +37,16 @@ test("transcript observer never resets an already-playing DJ audio element", asy
   assert.doesNotMatch(source, /if \(!audio\) return;\s*setVoiceCurrentTime\(audio\.currentTime \|\| 0\);\s*audio\.currentTime = 0/);
 });
 
+test("mobile voice panel keeps the song progress control outside the transcript scroller", async () => {
+  const stylesheet = await readFile(new URL("../styles.css", import.meta.url), "utf8");
+
+  assert.match(stylesheet, /\.voice-panel \{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;/);
+  assert.match(stylesheet, /\.voice-card \{[\s\S]*?display: grid;[\s\S]*?grid-template-rows: auto auto auto minmax\(0, 1fr\) auto;/);
+  assert.match(stylesheet, /\.voice-playback-row \{[\s\S]*?position: sticky;[\s\S]*?bottom: 0;/);
+  assert.match(stylesheet, /@media \(max-width: 600px\)[\s\S]*?\.voice-panel-backdrop \{[\s\S]*?min-height: 100svh;/);
+  assert.match(stylesheet, /\.voice-panel-motion,[\s\S]*?height: calc\(100svh - 24px - env\(safe-area-inset-top, 0px\) - env\(safe-area-inset-bottom, 0px\)\);/);
+});
+
 test("waiting transcript uses a compact Chinese placeholder", async () => {
   const source = await readFile(new URL("./Player.tsx", import.meta.url), "utf8");
 

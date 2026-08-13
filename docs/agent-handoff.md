@@ -253,3 +253,11 @@
 
 - The shared display greeting now follows the requested boundaries for both Claudio and 奶龙: 深夜 `22:00–06:00`, 早上 `06:00–11:00`, 中午 `11:00–13:00`, 下午 `13:00–18:00`, 晚上 `18:00–22:00`.
 - Verification: the boundary regression test was added first and failed before implementation; after the change, Showcase contract tests passed 23/23 and `npm run build` passed.
+
+## 2026-08-13 Mobile Narration Panel Progress Visibility
+
+- Root cause of the missing bottom song progress control in the mobile narration panel: the panel used `height: 100%` inside a backdrop that also had safe-area padding. On mobile WebViews this made the panel taller than the visible viewport, so the bottom transport could fall below the screen.
+- The narration panel now uses its safe viewport height minus the backdrop and device safe-area insets. The card is a fixed grid: only the transcript body scrolls, while the song progress row remains visible at the bottom of the panel.
+- This targets both phone Chrome and WeChat WebView without changing the radio layout, playback behavior, or desktop stage.
+- Verification: focused transcript test passed 7/7; complete test suite passed 51/51; `npm run showcase:release-check` passed (4-track release validation, Showcase build, and static safety scan); `git diff --check` passed.
+- Human check after deployment: on a phone at `390x844`, enter the radio, open the Claudio voice panel, scroll the transcript to both ends, and confirm the lower song progress bar remains visible and usable. Repeat once in WeChat and confirm the panel stays within the safe area.

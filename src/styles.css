@@ -7438,6 +7438,60 @@ body,
   z-index: 3;
 }
 
+/* Keep transport controls visible while the narration text is the only scrolling region. */
+.voice-panel {
+  display: flex;
+  flex-direction: column;
+  height: min(820px, calc(100dvh - 34px));
+}
+
+.voice-wave {
+  flex: 0 0 auto;
+}
+
+.voice-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+}
+
+.voice-transcript {
+  min-height: 0;
+  max-height: none;
+}
+
+.voice-playback-row {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding: 8px 0;
+  background: #f4f4f2;
+}
+
+@media (max-width: 600px) {
+  .voice-panel-backdrop {
+    min-height: 100svh;
+    min-height: 100dvh;
+    padding: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+  }
+
+  .voice-panel-motion,
+  .voice-panel {
+    height: calc(100svh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: none;
+  }
+
+  .voice-wave {
+    height: 84px;
+    flex-basis: 84px;
+  }
+
+  .voice-card {
+    padding: 18px 18px 16px;
+  }
+}
+
 /* Local personal assets remain outside Git while preserving the original UI. */
 .chat-avatar.claudio-avatar,
 .brand-avatar.claudio-avatar {
