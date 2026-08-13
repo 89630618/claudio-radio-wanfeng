@@ -236,3 +236,8 @@
 - Removed the full-product server, KuGou login/sync, chat, runtime API, LLM/Fish code, full-product entry points, related scripts and tests. `npm run build` now builds only `dist-showcase`.
 - Rewrote `README.md` for this branch and placed the non-commercial product-demonstration excerpt notice at the top. The four recordings are not described as Apache-2.0 content or full recordings.
 - Verification: `npx tsx --test` 47/47, `npm run showcase:validate:release`, `npm run build` and `npm run showcase:scan-build` passed. Browser automation is unavailable on this computer; use `npm run dev:showcase` and manually confirm the entry gate, queue, host page and narration page before enabling Pages.
+
+## 2026-08-13 Pre-Deployment Review
+
+- Review found the Pages workflow relied on the manually selected Actions ref. It now explicitly checks out `showcase`, so a manual run cannot package `main` by mistake.
+- Remaining runtime-reference search results are documentation history, scanner tests and unused legacy CSS selectors; static source and generated artifact do not import or request backend, KuGou, Fish, LLM or local paths.

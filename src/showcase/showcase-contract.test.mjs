@@ -41,6 +41,7 @@ test("showcase workflows verify every release gate and keep Pages deployment man
   assert.match(workflow, /actions\/upload-artifact/);
   assert.doesNotMatch(workflow, /deploy-pages|gh-pages|configure-pages/);
   assert.match(pagesWorkflow, /workflow_dispatch/);
+  assert.match(pagesWorkflow, /actions\/checkout@v4\s+with:\s+ref:\s+showcase/);
   assert.match(pagesWorkflow, /deploy:/);
   assert.match(pagesWorkflow, /default:\s*false/);
   assert.match(pagesWorkflow, /npm run showcase:validate:release/);
