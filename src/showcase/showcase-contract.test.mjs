@@ -147,10 +147,16 @@ test("showcase starts delayed narration through a muted browser-safe handoff", a
   assert.match(app, /voice\.loop = false; voice\.onended = null/);
 });
 
-test("showcase preserves audible music beneath narration", async () => {
+test("showcase keeps the singer audible when vocal-start narration begins", async () => {
   const app = await read("./ShowcaseApp.tsx");
   assert.match(app, /ducking \? 0\.55 : 1/);
-  assert.doesNotMatch(app, /ducking \? 0\.25 : 1/);
+  assert.match(app, /voice\.volume = modeRef\.current === "vocal_start" \? 0\.62 : 1/);
+});
+
+test("mobile showcase uses the safe viewport height instead of shrinking to a 9:16 inset", async () => {
+  const stylesheet = await read("./showcase.css");
+  assert.match(stylesheet, /padding: env\(safe-area-inset-top, 0px\) env\(safe-area-inset-right, 0px\) env\(safe-area-inset-bottom, 0px\) env\(safe-area-inset-left, 0px\)/);
+  assert.match(stylesheet, /width: 100%;[\s\S]*?height: 100%;/);
 });
 
 test("a finished music clip remains seekable without cancelling a still-playing narration", async () => {

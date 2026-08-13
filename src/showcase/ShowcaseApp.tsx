@@ -27,6 +27,7 @@ export function ShowcaseApp() {
   const voiceRunRef = useRef(0);
   const fadeFrameRef = useRef<number | undefined>(undefined);
   const volumeRef = useRef(0.5);
+  const modeRef = useRef<NarrationMode>(initialMode());
   const hostProfileTriggerRef = useRef<HTMLButtonElement>(null);
   const [entered, setEntered] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -56,6 +57,7 @@ export function ShowcaseApp() {
   const queue = playlist.picks.slice(trackIndex + 1);
 
   useEffect(() => { document.documentElement.dataset.theme = theme; return () => { delete document.documentElement.dataset.theme; }; }, [theme]);
+  useEffect(() => { modeRef.current = mode; }, [mode]);
   useEffect(() => { const timer = window.setInterval(() => setNow(new Date()), 60_000); return () => window.clearInterval(timer); }, []);
   useEffect(() => () => { if (fadeFrameRef.current !== undefined) cancelAnimationFrame(fadeFrameRef.current); }, []);
 
@@ -119,6 +121,7 @@ export function ShowcaseApp() {
         voice.loop = false;
         if (restart) voice.currentTime = 0;
         voice.muted = false;
+        voice.volume = modeRef.current === "vocal_start" ? 0.62 : 1;
         void voice.play().then(() => setIsSpeaking(true)).catch(() => finish(false));
       };
       voice.onended = () => finish(true);

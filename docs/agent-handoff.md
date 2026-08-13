@@ -241,3 +241,10 @@
 
 - Review found the Pages workflow relied on the manually selected Actions ref. It now explicitly checks out `showcase`, so a manual run cannot package `main` by mistake.
 - Remaining runtime-reference search results are documentation history, scanner tests and unused legacy CSS selectors; static source and generated artifact do not import or request backend, KuGou, Fish, LLM or local paths.
+
+## 2026-08-13 Mobile Mix And Viewport Correction
+
+- Root cause of the mobile vocal-start mix issue: music ducking was already limited to 55%, but the pre-generated DJ element always remained at 100% output. On phone speakers this made the DJ narration mask soft song vocals.
+- In `人声协同` (`vocal_start`), the DJ narration now plays at 62% output while the song keeps the established 55% ducking and timing. `开头播放` retains the existing DJ output level.
+- Mobile layouts at 600px and below no longer apply the desktop 9:16 width/height minimization. The radio now fills the safe dynamic viewport, including notch and home-indicator insets; desktop remains centered in its 9:16 stage.
+- Verification: regression tests were written first and failed for both behaviors; after implementation `npx tsx --test` passed 49/49, `npm run showcase:release-check` passed (4-track validation, build and static scan), and local browser checks at `360x800`, `390x844`, and `430x932` reported viewport-sized stages with no page-level horizontal or vertical overflow. Next human check: listen to a soft vocal track on a phone in `人声协同` and confirm the singer remains intelligible under the DJ.
