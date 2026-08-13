@@ -229,3 +229,10 @@
 - Release minimum is four tracks for this first Showcase release. `npm run showcase:validate:release` passes.
 - Fresh verification: `npm run build:showcase`, `npm run showcase:scan-build`, `npx tsx --test` (77/77), `npm run build`, and `npm run smoke` all pass.
 - Pages remains manual-only. The workflow has not been run with `deploy=true`; the branch can be pushed for review, but public deployment still requires a separate explicit deployment action.
+
+## 2026-08-13 Showcase-Only Branch Scope
+
+- Converted this branch into a standalone static Showcase surface. It retains the existing Claudio radio UI, host page, narration page, static catalog, four clips, pre-generated DJ audio, playback state machine, importer, validation and Pages workflow.
+- Removed the full-product server, KuGou login/sync, chat, runtime API, LLM/Fish code, full-product entry points, related scripts and tests. `npm run build` now builds only `dist-showcase`.
+- Rewrote `README.md` for this branch and placed the non-commercial product-demonstration excerpt notice at the top. The four recordings are not described as Apache-2.0 content or full recordings.
+- Verification: `npx tsx --test` 47/47, `npm run showcase:validate:release`, `npm run build` and `npm run showcase:scan-build` passed. Browser automation is unavailable on this computer; use `npm run dev:showcase` and manually confirm the entry gate, queue, host page and narration page before enabling Pages.

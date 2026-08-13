@@ -12,7 +12,7 @@ import type { NarrationMode } from "../playback/narration-machine";
 import { useNarrationPlayback } from "../playback/useNarrationPlayback";
 import { showcaseCatalog } from "./catalog";
 import type { ShowcaseTrack } from "./types";
-import type { PlaylistSuggestion, RadioPick, Track } from "../types";
+import type { PlaylistSuggestion, RadioPick, Track } from "./types";
 
 const modeKey = "claudio:narration-mode";
 
@@ -46,12 +46,12 @@ export function ShowcaseApp() {
     title: "Claudio Showcase",
     scene: "static showcase",
     summary: "Pre-generated showcase tracks",
-    source: "rules",
+    source: "static",
     generatedAt: "2026-08-12",
-    picks: showcaseCatalog.map((item) => ({ songId: item.id, djLine: item.djText, reason: "showcase", moodTags: [], source: "rules" }))
+    picks: showcaseCatalog.map((item) => ({ songId: item.id, djLine: item.djText, reason: "showcase", moodTags: [], source: "static" }))
   }), []);
   const trackMap = useMemo(() => new Map<string, Track>(showcaseCatalog.map((item) => [item.id, {
-    id: item.id, title: item.title, artist: item.artist, album: item.album, folder: "showcase", extension: item.musicSrc.split(".").pop() ?? "audio", source: "main", playable: true, size: 0, addedAt: "2026-08-12"
+    id: item.id, title: item.title, artist: item.artist, album: item.album, folder: "showcase", extension: item.musicSrc.split(".").pop() ?? "audio", source: "showcase", playable: true, size: 0, addedAt: "2026-08-12"
   }])), []);
   const queue = playlist.picks.slice(trackIndex + 1);
 
@@ -168,10 +168,10 @@ export function ShowcaseApp() {
       <DotGrid className="dot-grid--ambient" />
       <section className="stage">
         <SideRays />
-        <TopBar theme={theme} onThemeToggle={setTheme} kugouMobile="" kugouCode="" kugouAccounts={[]} selectedKuGouUserId="" kugouLoginStatus={null} kugouLibraryStatus={null} isKuGouAuthBusy={false} isImportingPlaylist={false} onKuGouMobileChange={() => undefined} onKuGouCodeChange={() => undefined} onKuGouUserSelect={() => undefined} onKuGouCaptchaSend={() => undefined} onKuGouLogin={() => undefined} onKuGouLogout={() => undefined} onHostProfileOpen={openHostProfile} showLogin={false} />
+        <TopBar theme={theme} onThemeToggle={setTheme} onHostProfileOpen={openHostProfile} />
         <section className="claudio-console">
           <ProfileCard now={now} weekday={now.toLocaleDateString("en-US", { weekday: "long" })} dateStamp={now.toLocaleDateString("en-GB")} />
-          <div className="player-strip"><div className="station-spacer" aria-hidden="true" /><Player isPlaying={isPlaying} currentTime={currentTime} duration={duration} volume={volume} isLoadingPick={false} isSpeaking={isSpeaking} narrationMode={mode} vocalStartMs={track.vocalStartMs} hasDjVoice recentPlayed={[]} hasPrevious={showcaseCatalog.length > 1} activeTasteMarks={[]} hasTrack currentTrack={track} nowPlayingDj={{ songId: track.id, say: track.djText, voiceUrl: asset(track.djAudioSrc), source: "rules", status: isSpeaking ? "voice_ready" : "idle" }} audioRef={audioRef} djVoiceAudioRef={djVoiceAudioRef} onPrevious={() => startTrack((trackIndex - 1 + showcaseCatalog.length) % showcaseCatalog.length)} onTogglePlay={togglePlay} onNext={() => startTrack((trackIndex + 1) % showcaseCatalog.length)} onTaste={() => undefined} onStopVoice={() => narration.cancel()} onNarrationModeChange={changeMode} onSeek={seek} onVolumeChange={changeVolume} formatTime={formatTime} onHostProfileOpen={openHostProfile} /></div>
+          <div className="player-strip"><div className="station-spacer" aria-hidden="true" /><Player isPlaying={isPlaying} currentTime={currentTime} duration={duration} volume={volume} isLoadingPick={false} isSpeaking={isSpeaking} narrationMode={mode} vocalStartMs={track.vocalStartMs} hasDjVoice recentPlayed={[]} hasPrevious={showcaseCatalog.length > 1} activeTasteMarks={[]} hasTrack currentTrack={track} nowPlayingDj={{ songId: track.id, say: track.djText, voiceUrl: asset(track.djAudioSrc), source: "static", status: isSpeaking ? "voice_ready" : "idle" }} audioRef={audioRef} djVoiceAudioRef={djVoiceAudioRef} onPrevious={() => startTrack((trackIndex - 1 + showcaseCatalog.length) % showcaseCatalog.length)} onTogglePlay={togglePlay} onNext={() => startTrack((trackIndex + 1) % showcaseCatalog.length)} onTaste={() => undefined} onStopVoice={() => narration.cancel()} onNarrationModeChange={changeMode} onSeek={seek} onVolumeChange={changeVolume} formatTime={formatTime} onHostProfileOpen={openHostProfile} /></div>
           <PlaylistQueue playlist={playlist} queue={queue} currentTrack={trackMap.get(track.id) ?? null} trackMap={trackMap} onSelectPick={(pick: RadioPick) => startTrack(showcaseCatalog.findIndex((item) => item.id === pick.songId))} />
           <ShowcaseMessagePanel now={now} />
           <AudioPlayer audioRef={audioRef} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onLoadedMetadata={setDuration} onTimeUpdate={(time) => { setCurrentTime(time); narration.progress(time * 1000); }} onEnded={handleMusicEnded} />
@@ -179,7 +179,7 @@ export function ShowcaseApp() {
         </section>
         {!entered && <div className="showcase-entry-gate"><div><span>STATIC BROADCAST</span><h2>Claudio</h2><p>Showcase</p><button type="button" onClick={togglePlay}>进入电台</button></div></div>}
       </section>
-      <HostProfileDialog open={isHostProfileOpen} onClose={() => setIsHostProfileOpen(false)} returnFocusRef={hostProfileTriggerRef} currentTrack={trackMap.get(track.id) ?? null} isPlaying={isPlaying} nowPlayingDj={{ songId: track.id, say: track.djText, voiceUrl: asset(track.djAudioSrc), source: "rules", status: isSpeaking ? "voice_ready" : "idle" }} libraryCount={showcaseCatalog.length} todayPlayCount={0} gptOnline={false} fishStatus={isSpeaking ? "online" : "standby"} kugouOnline={false} />
+      <HostProfileDialog open={isHostProfileOpen} onClose={() => setIsHostProfileOpen(false)} returnFocusRef={hostProfileTriggerRef} currentTrack={trackMap.get(track.id) ?? null} isPlaying={isPlaying} libraryCount={showcaseCatalog.length} />
     </main>
   );
 }

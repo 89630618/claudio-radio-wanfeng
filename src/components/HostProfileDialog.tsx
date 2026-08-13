@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import type { NowPlayingDj, Track } from "../types";
+import type { Track } from "../showcase/types";
 import { AnimatedContent } from "./AnimatedContent";
 import { ParticleField } from "./ParticleField";
 
@@ -12,12 +12,7 @@ type HostProfileDialogProps = {
   returnFocusRef: React.RefObject<HTMLButtonElement | null>;
   currentTrack: Track | null;
   isPlaying: boolean;
-  nowPlayingDj: NowPlayingDj | null;
   libraryCount: number;
-  todayPlayCount: number;
-  gptOnline: boolean;
-  fishStatus: "online" | "standby" | "offline";
-  kugouOnline: boolean;
 };
 
 export function HostProfileDialog(props: HostProfileDialogProps) {
@@ -77,16 +72,16 @@ export function HostProfileDialog(props: HostProfileDialogProps) {
           <div className="host-stats">
             <div><strong>{props.isPlaying ? "LIVE" : "READY"}</strong><small>STATUS</small></div>
             <div><strong>{props.libraryCount.toLocaleString()}</strong><small>TRACKS</small></div>
-            <div><strong>{props.todayPlayCount}</strong><small>TODAY</small></div>
+            <div><strong>4</strong><small>DEMO CLIPS</small></div>
           </div>
         </div>
 
         <section className="host-taste-board">
           <small>CLAUDIO · SIGNALS</small>
           <div className="host-services">
-            <ServiceStatus label="GPT" status={props.gptOnline ? "online" : "offline"} />
-            <ServiceStatus label="FISH TTS" status={props.fishStatus} />
-            <ServiceStatus label="KUGOU" status={props.kugouOnline ? "online" : "offline"} />
+            <ServiceStatus label="STATIC" status="online" />
+            <ServiceStatus label="DJ AUDIO" status="online" />
+            <ServiceStatus label="SHOWCASE" status="online" />
           </div>
           <div className="host-tastes">
             <span style={{ animationDelay: "470ms" }}>深情电台</span><span style={{ animationDelay: "535ms" }}>90S 华语</span><span style={{ animationDelay: "600ms" }}>旧情歌</span>

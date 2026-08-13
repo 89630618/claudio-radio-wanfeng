@@ -24,7 +24,7 @@ type PlayerProps = {
     songId: string;
     say: string;
     voiceUrl: string;
-    source: "ai" | "rules";
+    source: "static";
     status: "idle" | "writing" | "voice_preparing" | "voice_ready" | "voice_failed";
   } | null;
   audioRef: RefObject<HTMLAudioElement | null>;

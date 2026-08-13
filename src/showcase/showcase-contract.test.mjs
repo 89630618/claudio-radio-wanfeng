@@ -17,8 +17,16 @@ test("showcase builds through its own static Vite entry", async () => {
   assert.match(html, /src="\.\.\/src\/showcase\/main\.tsx"/);
   assert.doesNotMatch(main, /\.\.\/App|\.\.\/api/);
   assert.match(packageJson, /"dev:showcase":\s*"npm run build:showcase && vite preview --config vite\.showcase\.config\.ts --host 127\.0\.0\.1 --port 5176"/);
+  assert.match(packageJson, /"build":\s*"tsc -b && vite build --config vite\.showcase\.config\.ts"/);
+  assert.doesNotMatch(packageJson, /dev:server|dev:web|npm run smoke|server\/scripts/);
   assert.match(packageJson, /"showcase:validate":\s*"tsx scripts\/showcase\/validate-cli\.ts"/);
   assert.match(packageJson, /"showcase:release-check":\s*"npm run showcase:validate:release && npm run build:showcase && npm run showcase:scan-build"/);
+});
+
+test("showcase branch excludes the full product runtime", async () => {
+  const [packageJson, app] = await Promise.all([read("../../package.json"), read("./ShowcaseApp.tsx")]);
+  assert.doesNotMatch(packageJson, /express|undici|dev:server|dev:web|smoke/);
+  assert.doesNotMatch(app, /fetch\(|\/api\/|KuGou|Fish|LLM/);
 });
 
 test("showcase workflows verify every release gate and keep Pages deployment manually approved", async () => {
@@ -27,10 +35,8 @@ test("showcase workflows verify every release gate and keep Pages deployment man
     read("../../.github/workflows/showcase-pages.yml"),
   ]);
   assert.match(workflow, /npx tsx --test/);
-  assert.match(workflow, /npm run smoke/);
   assert.match(workflow, /npm run showcase:validate/);
   assert.match(workflow, /npm run build/);
-  assert.match(workflow, /npm run build:showcase/);
   assert.match(workflow, /npm run showcase:scan-build/);
   assert.match(workflow, /actions\/upload-artifact/);
   assert.doesNotMatch(workflow, /deploy-pages|gh-pages|configure-pages/);

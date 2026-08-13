@@ -1,8 +1,0 @@
-{
-  "version": 1,
-  "samples": [
-    { "artist": "孙燕姿", "title": "遇见", "category": "chinese-vocal" },
-    { "artist": "Yiruma", "title": "River Flows in You", "category": "instrumental" },
-    { "artist": "Ludovico Einaudi", "title": "Nuvole Bianche", "category": "instrumental" }
-  ]
-}
