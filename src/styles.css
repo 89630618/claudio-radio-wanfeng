@@ -7478,7 +7478,8 @@ body,
 
   .voice-panel-motion,
   .voice-panel {
-    height: calc(100svh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    height: calc(var(--showcase-visual-height, 100dvh) - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    min-height: 0;
     max-height: none;
   }
 
@@ -7489,6 +7490,51 @@ body,
 
   .voice-card {
     padding: 18px 18px 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .showcase-shell {
+    overflow-x: clip;
+  }
+
+  .transport-strip {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 40px auto auto 18px;
+    gap: 7px 10px;
+    padding: 10px 12px 9px;
+  }
+
+  .transport-strip .now-mini {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .transport-strip .transport {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .transport-strip .taste-controls.compact {
+    display: none;
+  }
+
+  .transport-strip .narration-mode {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: min(100%, 236px);
+  }
+
+  .transport-strip .elastic-volume {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: 100%;
+  }
+
+  .transport-strip .progress-row {
+    grid-column: 1 / -1;
+    grid-row: 4;
   }
 }
 

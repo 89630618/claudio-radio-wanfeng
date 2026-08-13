@@ -58,6 +58,20 @@ export function ShowcaseApp() {
 
   useEffect(() => { document.documentElement.dataset.theme = theme; return () => { delete document.documentElement.dataset.theme; }; }, [theme]);
   useEffect(() => { modeRef.current = mode; }, [mode]);
+  useEffect(() => {
+    const syncVisualHeight = () => {
+      const visualViewport = window.visualViewport;
+      document.documentElement.style.setProperty("--showcase-visual-height", `${visualViewport?.height ?? window.innerHeight}px`);
+    };
+
+    syncVisualHeight();
+    window.addEventListener("resize", syncVisualHeight);
+    window.visualViewport?.addEventListener("resize", syncVisualHeight);
+    return () => {
+      window.removeEventListener("resize", syncVisualHeight);
+      window.visualViewport?.removeEventListener("resize", syncVisualHeight);
+    };
+  }, []);
   useEffect(() => { const timer = window.setInterval(() => setNow(new Date()), 60_000); return () => window.clearInterval(timer); }, []);
   useEffect(() => () => { if (fadeFrameRef.current !== undefined) cancelAnimationFrame(fadeFrameRef.current); }, []);
 

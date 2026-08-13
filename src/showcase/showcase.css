@@ -1,4 +1,22 @@
 /* Showcase uses the same radio chassis and layout as the full Claudio app. */
+@media (min-width: 601px) {
+  .showcase-shell {
+    height: var(--showcase-visual-height, 100dvh);
+    min-height: 0;
+    padding: 14px 16px;
+    align-items: center;
+  }
+
+  .showcase-shell .stage {
+    width: min(calc((var(--showcase-visual-height, 100dvh) - 28px) * 9 / 16), calc(100vw - 32px));
+    height: min(calc(var(--showcase-visual-height, 100dvh) - 28px), calc((100vw - 32px) * 16 / 9));
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    aspect-ratio: 9 / 16;
+  }
+}
+
 @media (min-width: 601px) and (min-aspect-ratio: 1 / 2) and (max-width: 1100px) {
   .showcase-shell .stage {
     width: min(100vw, calc(100dvh * 9 / 16));

@@ -39,3 +39,4 @@ scripts/draw_claudio_wrapup_architecture.py
 !docs/
 docs/*
 !docs/agent-handoff.md
+!docs/SHOWCASE-CODEX-GUIDE.md

@@ -169,6 +169,23 @@ test("mobile showcase uses the safe viewport height instead of shrinking to a 9:
   assert.match(stylesheet, /width: 100%;[\s\S]*?height: 100%;/);
 });
 
+test("desktop showcase centers a complete 9:16 radio stage", async () => {
+  const stylesheet = await read("./showcase.css");
+
+  assert.match(stylesheet, /@media \(min-width: 601px\) \{[\s\S]*?\.showcase-shell \{[\s\S]*?align-items: center;/);
+  assert.match(stylesheet, /@media \(min-width: 601px\) \{[\s\S]*?\.showcase-shell \.stage \{[\s\S]*?width: min\(calc\(\(var\(--showcase-visual-height, 100dvh\) - 28px\) \* 9 \/ 16\), calc\(100vw - 32px\)\);[\s\S]*?height: min\(calc\(var\(--showcase-visual-height, 100dvh\) - 28px\), calc\(\(100vw - 32px\) \* 16 \/ 9\)\);[\s\S]*?aspect-ratio: 9 \/ 16;/);
+});
+
+test("narrow mobile keeps the radio chassis within the visual viewport", async () => {
+  const [app, stylesheet] = await Promise.all([read("./ShowcaseApp.tsx"), read("../styles.css")]);
+
+  assert.match(app, /document\.documentElement\.style\.setProperty\("--showcase-visual-height", `\$\{visualViewport\?\.height \?\? window\.innerHeight\}px`\)/);
+  assert.match(stylesheet, /@media \(max-width: 420px\) \{[\s\S]*?\.showcase-shell \{[\s\S]*?overflow-x: clip;/);
+  assert.match(stylesheet, /@media \(max-width: 420px\) \{[\s\S]*?\.transport-strip \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) auto;/);
+  assert.match(stylesheet, /@media \(max-width: 420px\) \{[\s\S]*?\.narration-mode \{[\s\S]*?grid-column: 1 \/ -1;/);
+  assert.match(stylesheet, /@media \(max-width: 600px\) \{[\s\S]*?\.voice-panel \{[\s\S]*?height: calc\(var\(--showcase-visual-height, 100dvh\) - 24px - env\(safe-area-inset-top, 0px\) - env\(safe-area-inset-bottom, 0px\)\);[\s\S]*?min-height: 0;/);
+});
+
 test("a finished music clip remains seekable without cancelling a still-playing narration", async () => {
   const app = await read("./ShowcaseApp.tsx");
   assert.match(app, /function handleMusicEnded\(\) \{[\s\S]*?music\.currentTime = 0;[\s\S]*?setCurrentTime\(0\);[\s\S]*?setIsPlaying\(false\);[\s\S]*?\}/);

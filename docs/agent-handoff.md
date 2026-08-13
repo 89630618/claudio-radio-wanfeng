@@ -261,3 +261,17 @@
 - This targets both phone Chrome and WeChat WebView without changing the radio layout, playback behavior, or desktop stage.
 - Verification: focused transcript test passed 7/7; complete test suite passed 51/51; `npm run showcase:release-check` passed (4-track release validation, Showcase build, and static safety scan); `git diff --check` passed.
 - Human check after deployment: on a phone at `390x844`, enter the radio, open the Claudio voice panel, scroll the transcript to both ends, and confirm the lower song progress bar remains visible and usable. Repeat once in WeChat and confirm the panel stays within the safe area.
+
+## 2026-08-13 Narrow Mobile WebView Correction And Handoff Guide
+
+- Added `docs/SHOWCASE-CODEX-GUIDE.md` for personal-computer Codex handoff: branch setup, local preview, song/DJ import, validation, commit, Pages deployment and network boundaries.
+- Added `visualViewport` height synchronization for browser address-bar changes. At widths up to 420px, the existing radio transport switches to a compact two-column layout, moves narration mode and volume to full-width rows, and clips accidental horizontal overflow without replacing the Claudio UI.
+- Removed the old mobile voice-panel minimum-height constraint; the panel now follows the real visual viewport and keeps the transcript as the only scrolling area.
+- Root cause classification: WeChat screenshot overflow was a narrow-width transport layout issue; Chrome's missing transcript progress was a panel-height/min-height conflict; the third browser screenshot is an external GitHub Pages network/DNS reachability failure and cannot be fixed in frontend code.
+- Verification: the new narrow-mobile contract test was red before implementation and green after; Showcase contract tests passed 24/24. Full suite, build, release-check and Pages deployment are still required before publishing this revision.
+
+## 2026-08-13 Desktop Portrait Stage
+
+- Desktop and tablet widths above 600px now center the existing Claudio radio chassis as a complete `9:16` stage. Its size is derived from the current visual viewport with a small outer margin, so it remains fully visible on both wide desktop screens and smaller landscape windows.
+- The stage is not scaled internally or reimplemented: the existing player, queue, host page and narration page retain their component tree and interaction behavior. The surrounding browser area remains the environmental background.
+- Verification: desktop-portrait regression test was red before implementation and green after. Focused transcript and Showcase contract tests passed 32/32; `npm run build` passed. Full test suite, release check and Pages deployment are next.
