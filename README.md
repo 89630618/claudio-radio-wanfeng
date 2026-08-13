@@ -183,11 +183,11 @@ Planned public entry after an explicitly approved Pages release: [Claudio Showca
 
 The Showcase preserves the Claudio radio interface, player, queue, theme and narration controls. It deliberately excludes chat, KuGou login, local profile data, backend requests, API keys, LLM generation and Fish generation. Showcase music and narration are pre-generated static files; they are not covered automatically by this repository's Apache-2.0 license. Each published track must have an entry in `ASSET-LICENSES.md` and pass `npm run showcase:validate` before release.
 
-The full local product remains the place for real-time generation, private configuration, personalization and local music workflows. The repository contains only a self-generated placeholder Showcase asset until cleared, public-web-hostable recordings and artwork are provided.
+The full local product remains the place for real-time generation, private configuration, personalization and local music workflows. The Showcase currently includes four short, user-authorized demonstration excerpts and pre-generated DJ audio. They are intentionally not full recordings and remain separate from the repository Apache-2.0 license.
 
 ### Updating Showcase Content
 
-To replace or add a track on your own computer, run `npm run showcase:import`. The local importer runs at `http://127.0.0.1:4174`, writes only to the selected repository directory, and asks for confirmation before replacing an existing track. After listening locally with `npm run dev:showcase`, run `npm run showcase:release-check`; it must pass before a track is eligible for Pages.
+To replace or add a track on your own computer, run `npm run showcase:import`. The local importer runs at `http://127.0.0.1:4174`, writes only to the selected repository directory, and asks for confirmation before replacing an existing track. After listening locally with `npm run dev:showcase`, run `npm run showcase:release-check`; it must pass before a track is eligible for Pages. The current first release contains four tracks.
 
 The Pages workflow is manual and defaults to `deploy=false`. It first runs the full release check, then uploads the static artifact. Deployment is only requested by explicitly starting the workflow with `deploy=true`, after the catalog, licenses and recorded clips have been reviewed.
 

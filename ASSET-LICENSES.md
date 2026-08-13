@@ -2,14 +2,50 @@
 
 These entries apply to Showcase media only. They are not automatically covered by the repository Apache-2.0 license.
 
-## Claudio Studio - Signal Check
+## 刘若英 - 后来
 
-- Track ID: `demo-signal`
-- Music: `showcase/tracks/demo-signal/music.wav`
-- Cover: `showcase/tracks/demo-signal/cover.jpg`
-- DJ audio: `showcase/tracks/demo-signal/dj.wav`
-- License: Original placeholder generated for this repository
-- Source: https://github.com/89630618/claudio-radio-wanfeng
-- Attribution: Claudio project placeholder audio and project artwork
+- Track ID: `local-houlai`
+- Music: `showcase/tracks/local-houlai/music.mp3`
+- Cover: `showcase/tracks/local-houlai/cover.jpg`
+- DJ audio: `showcase/tracks/local-houlai/dj.mp3`
+- License: User-authorized short excerpt for Claudio product demonstration; no full recording
+- Source: User-provided demonstration authorization
+- Attribution: Original recording credited to the listed artist; excerpt supplied by project owner
 - Scope: public-web-hosting
-- Verified: 2026-08-12
+- Verified: 2026-08-13
+
+## 孙燕姿 - 遇见
+
+- Track ID: `local-yujian`
+- Music: `showcase/tracks/local-yujian/music.mp3`
+- Cover: `showcase/tracks/local-yujian/cover.jpg`
+- DJ audio: `showcase/tracks/local-yujian/dj.mp3`
+- License: User-authorized short excerpt for Claudio product demonstration; no full recording
+- Source: User-provided demonstration authorization
+- Attribution: Original recording credited to the listed artist; excerpt supplied by project owner
+- Scope: public-web-hosting
+- Verified: 2026-08-13
+
+## 胡歌 - 逍遥叹
+
+- Track ID: `local-xiaoyaotan`
+- Music: `showcase/tracks/local-xiaoyaotan/music.mp3`
+- Cover: `showcase/tracks/local-xiaoyaotan/cover.jpg`
+- DJ audio: `showcase/tracks/local-xiaoyaotan/dj.mp3`
+- License: User-authorized short excerpt for Claudio product demonstration; no full recording
+- Source: User-provided demonstration authorization
+- Attribution: Original recording credited to the listed artist; excerpt supplied by project owner
+- Scope: public-web-hosting
+- Verified: 2026-08-13
+
+## 许嵩 - 星座书上
+
+- Track ID: `local-xingzuoshushang`
+- Music: `showcase/tracks/local-xingzuoshushang/music.mp3`
+- Cover: `showcase/tracks/local-xingzuoshushang/cover.jpg`
+- DJ audio: `showcase/tracks/local-xingzuoshushang/dj.mp3`
+- License: User-authorized short excerpt for Claudio product demonstration; no full recording
+- Source: User-provided demonstration authorization
+- Attribution: Original recording credited to the listed artist; excerpt supplied by project owner
+- Scope: public-web-hosting
+- Verified: 2026-08-13

@@ -1,21 +1,50 @@
 [
   {
-    "id": "demo-signal",
-    "title": "Signal Check",
-    "artist": "Claudio Studio",
-    "album": "Showcase Placeholder",
-    "musicSrc": "showcase/tracks/demo-signal/music.wav",
-    "coverSrc": "showcase/tracks/demo-signal/cover.jpg",
-    "djText": "凌晨的信号已经接通。这里是 Claudio，我们从一小段自制声音开始。",
-    "djAudioSrc": "showcase/tracks/demo-signal/dj.wav",
-    "vocalStartMs": 2400,
-    "rights": {
-      "status": "cleared",
-      "scope": "public-web-hosting",
-      "license": "Original placeholder generated for this repository",
-      "sourceUrl": "https://github.com/89630618/claudio-radio-wanfeng",
-      "attribution": "Claudio project placeholder audio and project artwork",
-      "verifiedAt": "2026-08-12"
-    }
+    "id": "local-houlai",
+    "title": "后来",
+    "artist": "刘若英",
+    "album": "本机产品试听",
+    "musicSrc": "showcase/tracks/local-houlai/music.mp3",
+    "coverSrc": "showcase/tracks/local-houlai/cover.jpg",
+    "djText": "《后来》最让人难受的地方，是刘若英唱得并不撕心裂肺，反而像很多年后终于能够平静说起一个人。年轻的时候，我们总以为喜欢就应该有结果，却不懂有些错过，要等到彼此走远了，才看清当初那份认真有多难得。后来我们学会了道歉，学会了珍惜，也学会在人群里把情绪藏好，只是那个最想挽留的人，已经听不到了。接下来，把刘若英的《后来》送给今天歌单的点播人小毛毛雨，也送给每一个曾在很久以后，才读懂当年自己的人。",
+    "djAudioSrc": "showcase/tracks/local-houlai/dj.mp3",
+    "vocalStartMs": 12000,
+    "rights": { "status": "cleared", "scope": "public-web-hosting", "license": "User-authorized short excerpt for Claudio product demonstration; no full recording", "sourceUrl": "User-provided demonstration authorization", "attribution": "Original recording credited to the listed artist; excerpt supplied by project owner", "verifiedAt": "2026-08-13" }
+  },
+  {
+    "id": "local-yujian",
+    "title": "遇见",
+    "artist": "孙燕姿",
+    "album": "本机产品试听",
+    "musicSrc": "showcase/tracks/local-yujian/music.mp3",
+    "coverSrc": "showcase/tracks/local-yujian/cover.jpg",
+    "djText": "《遇见》这首歌很特别，它不是那种一开口就把故事讲满的情歌。孙燕姿的声音像是站在雨后的街口，轻轻问了一句：我遇见谁，会有怎样的对白。那一年很多人听它，是在等一个人出现；后来再听，才发现歌里真正动人的地方，不只是相遇，而是那种还不知道答案、却愿意往前走的心情。小毛毛雨的天气里，很多东西都变得慢一点，路灯、车窗、还有心里没说出口的话。接下来，就让这首《遇见》陪你走进今天的歌单。",
+    "djAudioSrc": "showcase/tracks/local-yujian/dj.mp3",
+    "vocalStartMs": 25000,
+    "rights": { "status": "cleared", "scope": "public-web-hosting", "license": "User-authorized short excerpt for Claudio product demonstration; no full recording", "sourceUrl": "User-provided demonstration authorization", "attribution": "Original recording credited to the listed artist; excerpt supplied by project owner", "verifiedAt": "2026-08-13" }
+  },
+  {
+    "id": "local-xiaoyaotan",
+    "title": "逍遥叹",
+    "artist": "胡歌",
+    "album": "本机产品试听",
+    "musicSrc": "showcase/tracks/local-xiaoyaotan/music.mp3",
+    "coverSrc": "showcase/tracks/local-xiaoyaotan/cover.jpg",
+    "djText": "《逍遥叹》这首歌一响，很多人脑子里先出现的，可能不是录音棚里的胡歌，而是那个背着剑、笑起来有点没心没肺的李逍遥。2005年的《仙剑奇侠传》把江湖拍得很少年：有酒、有剑、有喜欢的人，也有后来才懂的无能为力。胡歌唱岁月难得沉默，秋风厌倦漂泊时，声音里其实没有太多英雄气，反而像一个人走了很远以后，终于承认有些告别不是靠潇洒就能翻篇。小时候听它，觉得逍遥是自由；长大后再听，才发现那个叹字才是整首歌真正的重量。接下来，把时间拨回那段白衣少年闯江湖的梦里，胡歌，《逍遥叹》。",
+    "djAudioSrc": "showcase/tracks/local-xiaoyaotan/dj.mp3",
+    "vocalStartMs": 26000,
+    "rights": { "status": "cleared", "scope": "public-web-hosting", "license": "User-authorized short excerpt for Claudio product demonstration; no full recording", "sourceUrl": "User-provided demonstration authorization", "attribution": "Original recording credited to the listed artist; excerpt supplied by project owner", "verifiedAt": "2026-08-13" }
+  },
+  {
+    "id": "local-xingzuoshushang",
+    "title": "星座书上",
+    "artist": "许嵩",
+    "album": "本机产品试听",
+    "musicSrc": "showcase/tracks/local-xingzuoshushang/music.mp3",
+    "coverSrc": "showcase/tracks/local-xingzuoshushang/cover.jpg",
+    "djText": "那几年听许嵩，总像是在翻一本没上锁的青春日记。《星座书上》这首歌很有意思，它把恋爱里那些小心思，写得又认真又有点孩子气。明明知道星座书不能决定什么，可还是忍不住去对照，去猜测，去给一段关系找一点点命中注定的证据。现在回头听，会觉得那时候的人真容易相信，也真舍得把喜欢说得这么直白。可也正是这种直白，让这首歌一响起来，就带着 QQ 空间、非主流头像、深夜偷偷改签名的味道。接下来这首，许嵩，《星座书上》。",
+    "djAudioSrc": "showcase/tracks/local-xingzuoshushang/dj.mp3",
+    "vocalStartMs": 33000,
+    "rights": { "status": "cleared", "scope": "public-web-hosting", "license": "User-authorized short excerpt for Claudio product demonstration; no full recording", "sourceUrl": "User-provided demonstration authorization", "attribution": "Original recording credited to the listed artist; excerpt supplied by project owner", "verifiedAt": "2026-08-13" }
   }
 ]

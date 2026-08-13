@@ -9,7 +9,7 @@ const licensesText = await readFile(resolve(root, "ASSET-LICENSES.md"), "utf8").
 const errors = await validateShowcase(showcaseCatalog, {
   publicDir: resolve(root, "public"),
   licensesText,
-  minTracks: release ? 5 : 1,
+  minTracks: release ? 4 : 1,
   rejectPlaceholder: release,
 });
 

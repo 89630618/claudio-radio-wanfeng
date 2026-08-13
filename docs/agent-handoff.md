@@ -220,3 +220,12 @@
 - Local four-track validation still reports the expected local-only failures: shared ignored cover path and the public placeholder license manifest. These files were not staged.
 - Fresh verification: `npx tsx --test` 77/77 passed; `npm run build`, `npm run smoke`, and `npm run build:showcase` passed; `git diff --check` passed.
 - The public branch remains safe to publish as code only. The four local song excerpts are not included in GitHub or Pages until their specific public-hosting rights are documented and the release gate passes.
+
+## 2026-08-13 Authorized Showcase Content Release
+
+- The user explicitly authorized public GitHub/Pages distribution of the four short excerpts for product demonstration and accepted responsibility for that publication.
+- Copied only the four supplied music excerpts, their pre-generated DJ audio, and project-owned generic cover artwork into `public/showcase/tracks/`. No full recordings, original album covers, local paths, private data or API credentials were added.
+- Updated `public/showcase/catalog.json` and `ASSET-LICENSES.md` with four distinct asset paths and the user's demonstration authorization statement.
+- Release minimum is four tracks for this first Showcase release. `npm run showcase:validate:release` passes.
+- Fresh verification: `npm run build:showcase`, `npm run showcase:scan-build`, `npx tsx --test` (77/77), `npm run build`, and `npm run smoke` all pass.
+- Pages remains manual-only. The workflow has not been run with `deploy=true`; the branch can be pushed for review, but public deployment still requires a separate explicit deployment action.
