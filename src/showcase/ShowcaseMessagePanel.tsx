@@ -1,9 +1,12 @@
 import { AnimatedContent } from "../components/AnimatedContent";
 
 function greeting(hour: number) {
+  if (hour < 6) return "深夜好";
   if (hour < 11) return "早上好";
-  if (hour < 18) return "中午好";
-  return "晚上好";
+  if (hour < 13) return "中午好";
+  if (hour < 18) return "下午好";
+  if (hour < 22) return "晚上好";
+  return "深夜好";
 }
 
 export function ShowcaseMessagePanel({ now }: { now: Date }) {

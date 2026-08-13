@@ -248,3 +248,8 @@
 - In `人声协同` (`vocal_start`), the DJ narration now plays at 62% output while the song keeps the established 55% ducking and timing. `开头播放` retains the existing DJ output level.
 - Mobile layouts at 600px and below no longer apply the desktop 9:16 width/height minimization. The radio now fills the safe dynamic viewport, including notch and home-indicator insets; desktop remains centered in its 9:16 stage.
 - Verification: regression tests were written first and failed for both behaviors; after implementation `npx tsx --test` passed 49/49, `npm run showcase:release-check` passed (4-track validation, build and static scan), and local browser checks at `360x800`, `390x844`, and `430x932` reported viewport-sized stages with no page-level horizontal or vertical overflow. Next human check: listen to a soft vocal track on a phone in `人声协同` and confirm the singer remains intelligible under the DJ.
+
+## 2026-08-13 Showcase Greeting Periods
+
+- The shared display greeting now follows the requested boundaries for both Claudio and 奶龙: 深夜 `22:00–06:00`, 早上 `06:00–11:00`, 中午 `11:00–13:00`, 下午 `13:00–18:00`, 晚上 `18:00–22:00`.
+- Verification: the boundary regression test was added first and failed before implementation; after the change, Showcase contract tests passed 23/23 and `npm run build` passed.

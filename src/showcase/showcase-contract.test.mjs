@@ -92,6 +92,16 @@ test("showcase message panel shows the Nielong greeting and a disabled display i
   assert.match(panel, /仅供展示，暂不支持输入/);
 });
 
+test("showcase greetings follow the five requested day periods", async () => {
+  const panel = await read("./ShowcaseMessagePanel.tsx");
+  assert.match(panel, /if \(hour < 6\) return "深夜好"/);
+  assert.match(panel, /if \(hour < 11\) return "早上好"/);
+  assert.match(panel, /if \(hour < 13\) return "中午好"/);
+  assert.match(panel, /if \(hour < 18\) return "下午好"/);
+  assert.match(panel, /if \(hour < 22\) return "晚上好"/);
+  assert.match(panel, /return "深夜好"/);
+});
+
 test("showcase build configuration writes a deployable HTML entry", async () => {
   const config = await read("../../vite.showcase.config.ts");
   assert.match(config, /outDir:\s*resolve\(__dirname,\s*"dist-showcase"\)/);
