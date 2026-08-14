@@ -7,6 +7,6 @@ export function musicVolume(userVolume: number, ducking: boolean) {
   return userVolume * (ducking ? musicDuckingGain : 1);
 }
 
-export function narrationVolume(userVolume: number, mode: NarrationMode, vocalStartDjGain?: number) {
-  return userVolume * (mode === "vocal_start" ? (vocalStartDjGain ?? introNarrationGain) : introNarrationGain);
+export function narrationVolume(_userVolume: number, mode: NarrationMode, vocalStartDjGain?: number) {
+  return mode === "vocal_start" ? (vocalStartDjGain ?? introNarrationGain) : 1;
 }

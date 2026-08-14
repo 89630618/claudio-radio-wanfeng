@@ -179,8 +179,6 @@ export function ShowcaseApp() {
     setVolume(nextVolume);
     if (fadeFrameRef.current !== undefined) cancelAnimationFrame(fadeFrameRef.current);
     if (audioRef.current) audioRef.current.volume = musicVolume(nextVolume, isDuckingRef.current);
-    const voice = djVoiceAudioRef.current;
-    if (voice && !voice.muted) voice.volume = narrationVolume(nextVolume, modeRef.current, activeTrackRef.current.vocalStartDjGain);
   }
   function handleMusicEnded() {
     const music = audioRef.current;

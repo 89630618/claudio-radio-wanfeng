@@ -9,8 +9,9 @@ test("music volume keeps the ducking ratio when the listener changes volume", ()
   assert.equal(musicVolume(0.8, false), 0.8);
 });
 
-test("narration volume follows the listener volume in both narration modes", () => {
-  assert.equal(narrationVolume(0.5, "intro_overlay"), 0.2);
-  assert.equal(narrationVolume(0.5, "vocal_start", 0.3), 0.15);
-  assert.ok(Math.abs(narrationVolume(0.8, "vocal_start", 0.4) - 0.32) < 0.0001);
+test("narration keeps its independent mode gain when the listener changes music volume", () => {
+  assert.equal(narrationVolume(0.1, "intro_overlay"), 1);
+  assert.equal(narrationVolume(0.8, "intro_overlay"), 1);
+  assert.equal(narrationVolume(0.1, "vocal_start", 0.3), 0.3);
+  assert.equal(narrationVolume(0.8, "vocal_start", 0.4), 0.4);
 });

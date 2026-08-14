@@ -302,3 +302,9 @@
 - Verification: catalog-order regression test was red before the update and green after it. Fresh full suite passed `57/57`; `npm run showcase:validate:release` passed for all five tracks; `npm run build`, `npm run showcase:scan-build`, and `git diff --check` passed. The replacement music clip is `85.056s`, so the `29s` narration start is inside the published clip.
 - Published the shared-volume correction and five-track update to remote `showcase` as `816210dd6faa6774cad3698362f29d66a55976a5`.
 - Manual Pages workflow `31762934506` completed successfully on 2026-08-14. The public URL returned HTTP `200`: `https://89630618.github.io/claudio-radio-wanfeng/`.
+
+## 2026-08-14 DJ Volume Rollback
+
+- The shared-volume policy made DJ narration too quiet at the Showcase default `VOL` value. The original independent mix is restored: `VOL` controls the music clip only; DJ remains full output in `开头播放` and uses each catalog item's existing `vocalStartDjGain` in `人声协同`.
+- The existing music ducking ratio, fade timings, mobile volume slider layout, catalog order, narration timing and all static asset paths are unchanged.
+- Verification: test-first regression reproduced the failure at `VOL=10%` (DJ incorrectly became `4%`). After the rollback, focused tests passed `29/29` and `git diff --check` passed. Next: run the release check, publish the Showcase branch, then perform a phone-speaker listening check for both modes.

@@ -157,13 +157,14 @@ test("showcase starts delayed narration through a muted browser-safe handoff", a
   assert.match(app, /voice\.loop = false; voice\.onended = null/);
 });
 
-test("showcase keeps DJ and music volume proportional to the listener volume", async () => {
+test("showcase keeps DJ gain independent from the listener music volume", async () => {
   const [app, types, volume] = await Promise.all([read("./ShowcaseApp.tsx"), read("./types.ts"), read("./playback-volume.ts")]);
   assert.match(app, /musicVolume\(nextVolume, isDuckingRef\.current\)/);
   assert.match(app, /voice\.volume = narrationVolume\(volumeRef\.current, modeRef\.current, activeTrackRef\.current\.vocalStartDjGain\)/);
-  assert.match(app, /voice\.volume = narrationVolume\(nextVolume, modeRef\.current, activeTrackRef\.current\.vocalStartDjGain\)/);
   assert.match(volume, /const introNarrationGain = 0\.4/);
   assert.match(volume, /userVolume \* \(ducking \? musicDuckingGain : 1\)/);
+  assert.match(volume, /return mode === "vocal_start" \? \(vocalStartDjGain \?\? introNarrationGain\) : 1/);
+  assert.doesNotMatch(app, /voice\.volume = narrationVolume\(nextVolume/);
   assert.match(types, /vocalStartDjGain\?: number;/);
 });
 
