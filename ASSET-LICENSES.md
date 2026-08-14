@@ -31,7 +31,7 @@ These entries apply to Showcase media only. They are not automatically covered b
 - Track ID: `local-pugongying`
 - Music: `showcase/tracks/local-pugongying/music.mp3`
 - Cover: `showcase/tracks/local-pugongying/cover.jpg`
-- DJ audio: `showcase/tracks/local-pugongying/dj.mp3`
+- DJ audio: `showcase/tracks/local-pugongying/dj-v2.mp3`
 - License: User-authorized short excerpt for Claudio product demonstration; no full recording
 - Source: User-provided demonstration authorization
 - Attribution: Original recording credited to the listed artist; excerpt supplied by project owner

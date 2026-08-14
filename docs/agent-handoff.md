@@ -313,4 +313,5 @@
 
 - A five-track EBU R128 review found the actual root cause of the remaining quiet narration report: `蒲公英的约定` DJ source measured `-23.6 LUFS`, while the other DJ files measure between `-11.4` and `-12.4 LUFS`. Its former `0.40` gain made it about `14 dB` quieter than its ducked song vocal.
 - Only that supplied DJ file was normalized offline with `+8.5 dB` gain and a `0.85` peak limiter. It now measures `-14.2 LUFS`; its Showcase catalog gain is `0.65`, yielding about `-17.9 LUFS` beside a `-17.2 LUFS` ducked song window. Duration, transcript, timing, music excerpt and every other track gain remain unchanged.
+- The normalized narration is published at the versioned path `dj-v2.mp3`, so mobile browsers and WeChat cannot retain the previously cached DJ asset. The public asset license record was updated to the same path.
 - Regression test was written first and failed with the old `0.40` value. Next: run the complete release gates, publish, then listen to `人声协同` for `蒲公英的约定` on a phone speaker and compare it with `后来`.
