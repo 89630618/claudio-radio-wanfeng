@@ -300,4 +300,5 @@
 - The requested playback order is now: 后来、逍遥叹、蒲公英的约定、遇见、星座书上. The project-owned generic cover is reused at a unique static path for the new track.
 - The supplied music file is retained as provided under the user's explicit current release instruction. The asset license entry records the same user-authorized product-demonstration scope as the existing Showcase excerpts.
 - Verification: catalog-order regression test was red before the update and green after it. Fresh full suite passed `57/57`; `npm run showcase:validate:release` passed for all five tracks; `npm run build`, `npm run showcase:scan-build`, and `git diff --check` passed. The replacement music clip is `85.056s`, so the `29s` narration start is inside the published clip.
-- Next step: publish this content update together with the shared-volume correction to `showcase`, then run the manually approved Pages deployment.
+- Published the shared-volume correction and five-track update to remote `showcase` as `816210dd6faa6774cad3698362f29d66a55976a5`.
+- Manual Pages workflow `31762934506` completed successfully on 2026-08-14. The public URL returned HTTP `200`: `https://89630618.github.io/claudio-radio-wanfeng/`.
