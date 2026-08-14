@@ -7,7 +7,7 @@ import { renderAssetLicenses, validateShowcase } from "./validate";
 import type { ShowcaseTrack } from "../../src/showcase/types";
 
 function track(overrides: Partial<ShowcaseTrack> = {}): ShowcaseTrack {
-  return { id: "test-track", title: "Test Track", artist: "Test Artist", album: "Test Album", musicSrc: "showcase/tracks/test-track/music.wav", coverSrc: "showcase/tracks/test-track/cover.jpg", djText: "Pre-generated narration.", djAudioSrc: "showcase/tracks/test-track/dj.wav", vocalStartMs: 2400, rights: { status: "cleared", scope: "public-web-hosting", license: "Original test fixture", sourceUrl: "https://example.com/source", attribution: "Test fixture", verifiedAt: "2026-08-12" }, ...overrides };
+  return { id: "test-track", title: "Test Track", artist: "Test Artist", album: "Test Album", musicSrc: "showcase/tracks/test-track/music.wav", coverSrc: "showcase/tracks/test-track/cover.jpg", djText: "Pre-generated narration.", djAudioSrc: "showcase/tracks/test-track/dj.wav", vocalStartMs: 2400, vocalStartDjGain: 0.4, rights: { status: "cleared", scope: "public-web-hosting", license: "Original test fixture", sourceUrl: "https://example.com/source", attribution: "Test fixture", verifiedAt: "2026-08-12" }, ...overrides };
 }
 async function fixture() { const root = await mkdtemp(join(tmpdir(), "claudio-showcase-")); const folder = join(root, "showcase", "tracks", "test-track"); await mkdir(folder, { recursive: true }); await Promise.all([writeFile(join(folder, "music.wav"), "music"), writeFile(join(folder, "cover.jpg"), "cover"), writeFile(join(folder, "dj.wav"), "voice")]); return root; }
 

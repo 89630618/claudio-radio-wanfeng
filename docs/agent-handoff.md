@@ -275,3 +275,11 @@
 - Desktop and tablet widths above 600px now center the existing Claudio radio chassis as a complete `9:16` stage. Its size is derived from the current visual viewport with a small outer margin, so it remains fully visible on both wide desktop screens and smaller landscape windows.
 - The stage is not scaled internally or reimplemented: the existing player, queue, host page and narration page retain their component tree and interaction behavior. The surrounding browser area remains the environmental background.
 - Verification: desktop-portrait regression test was red before implementation and green after. Focused transcript and Showcase contract tests passed 32/32; `npm run build` passed. Full test suite, release check and Pages deployment are next.
+
+## 2026-08-13 Vocal-Start Mix Balance And Rapid Content Workflow
+
+- Kept music ducking at `0.72` of the user's selected volume. A read-only loudness check at each vocal-start window found a material spread: `后来 -15.80 LUFS`, `遇见 -21.91 LUFS`, `逍遥叹 -16.68 LUFS`, and `星座书上 -13.08 LUFS`; a single DJ level would not balance all four.
+- Vocal-start DJ gain is now content-calibrated: `后来 0.40`, `遇见 0.30`, `逍遥叹 0.40`, and `星座书上 0.55`. New imported tracks without a calibration retain the safe `0.40` default, so the local importer remains compatible.
+- Verification: `npx tsx --test` passed 54/54; `npm run showcase:release-check` passed validation, build and static safety scan; `git diff --check` passed. Remaining manual acceptance: listen on a phone speaker at the vocal entry for `后来` and `遇见` before release.
+- Rapid public-content workflow remains gated: prepare the cleared short excerpt, cover, DJ audio, text, and vocal marker locally; import through `npm run showcase:import`; run `npm run showcase:release-check`; manually verify both narration modes; commit and push `showcase`; only then run the manually approved Pages deployment. No API keys, runtime uploads or automatic public deployment are introduced.
+- If a new recording remains materially quieter after the global mix change, normalize that music clip offline before import rather than adding per-track runtime gain logic. Keep the public rights record and relative static paths as release prerequisites.

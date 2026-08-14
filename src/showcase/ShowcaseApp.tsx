@@ -80,7 +80,7 @@ export function ShowcaseApp() {
     if (!music) return;
     if (fadeFrameRef.current !== undefined) cancelAnimationFrame(fadeFrameRef.current);
     const start = music.volume;
-    const target = volumeRef.current * (ducking ? 0.55 : 1);
+    const target = volumeRef.current * (ducking ? 0.72 : 1);
     const durationMs = ducking ? 280 : 900;
     const began = performance.now();
     const update = (time: number) => { const progress = Math.min(1, (time - began) / durationMs); music.volume = start + (target - start) * progress; if (progress < 1) fadeFrameRef.current = requestAnimationFrame(update); };
@@ -135,7 +135,7 @@ export function ShowcaseApp() {
         voice.loop = false;
         if (restart) voice.currentTime = 0;
         voice.muted = false;
-        voice.volume = modeRef.current === "vocal_start" ? 0.62 : 1;
+        voice.volume = modeRef.current === "vocal_start" ? (activeTrackRef.current.vocalStartDjGain ?? 0.4) : 1;
         void voice.play().then(() => setIsSpeaking(true)).catch(() => finish(false));
       };
       voice.onended = () => finish(true);

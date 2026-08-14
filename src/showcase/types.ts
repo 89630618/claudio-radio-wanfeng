@@ -8,6 +8,7 @@ export type ShowcaseTrack = {
   djText: string;
   djAudioSrc: string;
   vocalStartMs: number;
+  vocalStartDjGain?: number;
   rights: {
     status: "cleared";
     scope: "public-web-hosting";

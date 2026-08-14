@@ -158,9 +158,10 @@ test("showcase starts delayed narration through a muted browser-safe handoff", a
 });
 
 test("showcase keeps the singer audible when vocal-start narration begins", async () => {
-  const app = await read("./ShowcaseApp.tsx");
-  assert.match(app, /ducking \? 0\.55 : 1/);
-  assert.match(app, /voice\.volume = modeRef\.current === "vocal_start" \? 0\.62 : 1/);
+  const [app, types] = await Promise.all([read("./ShowcaseApp.tsx"), read("./types.ts")]);
+  assert.match(app, /ducking \? 0\.72 : 1/);
+  assert.match(app, /voice\.volume = modeRef\.current === "vocal_start" \? \(activeTrackRef\.current\.vocalStartDjGain \?\? 0\.4\) : 1/);
+  assert.match(types, /vocalStartDjGain\?: number;/);
 });
 
 test("mobile showcase uses the safe viewport height instead of shrinking to a 9:16 inset", async () => {
@@ -184,6 +185,14 @@ test("narrow mobile keeps the radio chassis within the visual viewport", async (
   assert.match(stylesheet, /@media \(max-width: 420px\) \{[\s\S]*?\.transport-strip \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) auto;/);
   assert.match(stylesheet, /@media \(max-width: 420px\) \{[\s\S]*?\.narration-mode \{[\s\S]*?grid-column: 1 \/ -1;/);
   assert.match(stylesheet, /@media \(max-width: 600px\) \{[\s\S]*?\.voice-panel \{[\s\S]*?height: calc\(var\(--showcase-visual-height, 100dvh\) - 24px - env\(safe-area-inset-top, 0px\) - env\(safe-area-inset-bottom, 0px\)\);[\s\S]*?min-height: 0;/);
+});
+
+test("portrait showcase keeps volume and playback progress in separate rows", async () => {
+  const stylesheet = await read("../styles.css");
+
+  assert.match(stylesheet, /@media \(min-width: 421px\) \{[\s\S]*?@container \(max-width: 600px\) \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) auto;[\s\S]*?grid-template-rows: 40px auto 22px 18px;/);
+  assert.match(stylesheet, /@media \(min-width: 421px\) \{[\s\S]*?\.elastic-volume \{[\s\S]*?grid-column: 1 \/ -1;[\s\S]*?grid-row: 3;/);
+  assert.match(stylesheet, /@media \(max-width: 600px\) \{[\s\S]*?\.voice-panel \{[\s\S]*?padding-bottom: max\(16px, env\(safe-area-inset-bottom, 0px\)\);/);
 });
 
 test("a finished music clip remains seekable without cancelling a still-playing narration", async () => {
