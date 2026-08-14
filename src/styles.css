@@ -7242,6 +7242,32 @@ body,
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Portrait radio frame: its 9:16 chassis stays inside the usable viewport. */
+:root {
+  --app-viewport-height: 100dvh;
+}
+
+.shell {
+  --portrait-pad-top: max(var(--shell-v-pad), env(safe-area-inset-top));
+  --portrait-pad-bottom: max(var(--shell-v-pad), env(safe-area-inset-bottom));
+  height: var(--app-viewport-height);
+  min-height: var(--app-viewport-height);
+  padding:
+    var(--portrait-pad-top)
+    max(16px, env(safe-area-inset-right))
+    var(--portrait-pad-bottom)
+    max(16px, env(safe-area-inset-left));
+  align-items: center;
+}
+
+.stage {
+  width: min(100%, calc((var(--app-viewport-height) - var(--portrait-pad-top) - var(--portrait-pad-bottom)) * 9 / 16));
+  height: auto;
+  max-height: calc(var(--app-viewport-height) - var(--portrait-pad-top) - var(--portrait-pad-bottom));
+  aspect-ratio: 9 / 16;
+  margin: 0;
+}
+
 /* The 3D first frame gates the verse, so slower browsers preserve the sequence. */
 .host-profile-dialog .companion-model--night-creature {
   opacity: 0;
