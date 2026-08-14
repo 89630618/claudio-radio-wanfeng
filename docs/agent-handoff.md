@@ -308,3 +308,9 @@
 - The shared-volume policy made DJ narration too quiet at the Showcase default `VOL` value. The original independent mix is restored: `VOL` controls the music clip only; DJ remains full output in `开头播放` and uses each catalog item's existing `vocalStartDjGain` in `人声协同`.
 - The existing music ducking ratio, fade timings, mobile volume slider layout, catalog order, narration timing and all static asset paths are unchanged.
 - Verification: test-first regression reproduced the failure at `VOL=10%` (DJ incorrectly became `4%`). After the rollback, focused tests passed `29/29` and `git diff --check` passed. Next: run the release check, publish the Showcase branch, then perform a phone-speaker listening check for both modes.
+
+## 2026-08-14 Per-Track DJ Mix Review
+
+- A five-track EBU R128 review found the actual root cause of the remaining quiet narration report: `蒲公英的约定` DJ source measured `-23.6 LUFS`, while the other DJ files measure between `-11.4` and `-12.4 LUFS`. Its former `0.40` gain made it about `14 dB` quieter than its ducked song vocal.
+- Only that supplied DJ file was normalized offline with `+8.5 dB` gain and a `0.85` peak limiter. It now measures `-14.2 LUFS`; its Showcase catalog gain is `0.65`, yielding about `-17.9 LUFS` beside a `-17.2 LUFS` ducked song window. Duration, transcript, timing, music excerpt and every other track gain remain unchanged.
+- Regression test was written first and failed with the old `0.40` value. Next: run the complete release gates, publish, then listen to `人声协同` for `蒲公英的约定` on a phone speaker and compare it with `后来`.

@@ -253,6 +253,13 @@ test("local catalog keeps the requested five-track showcase order", async () => 
   assert.equal(catalog[2].vocalStartMs, 29000);
 });
 
+test("蒲公英的约定 uses its calibrated narration gain after quiet-source normalization", async () => {
+  const catalog = JSON.parse(await read("../../public/showcase/catalog.json"));
+  const pugongying = catalog.find((track) => track.id === "local-pugongying");
+
+  assert.equal(pugongying.vocalStartDjGain, 0.65);
+});
+
 test("showcase keeps a 9:16-safe shared stage at portrait review widths", async () => {
   const stylesheet = await read("./showcase.css");
   assert.match(stylesheet, /\.showcase-shell \.stage/);
