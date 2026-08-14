@@ -11,6 +11,7 @@ import { ShowcaseMessagePanel } from "./ShowcaseMessagePanel";
 import type { NarrationMode } from "../playback/narration-machine";
 import { useNarrationPlayback } from "../playback/useNarrationPlayback";
 import { showcaseCatalog } from "./catalog";
+import { musicVolume, narrationVolume } from "./playback-volume";
 import type { ShowcaseTrack } from "./types";
 import type { PlaylistSuggestion, RadioPick, Track } from "./types";
 
@@ -27,6 +28,7 @@ export function ShowcaseApp() {
   const voiceRunRef = useRef(0);
   const fadeFrameRef = useRef<number | undefined>(undefined);
   const volumeRef = useRef(0.5);
+  const isDuckingRef = useRef(false);
   const modeRef = useRef<NarrationMode>(initialMode());
   const hostProfileTriggerRef = useRef<HTMLButtonElement>(null);
   const [entered, setEntered] = useState(false);
@@ -77,10 +79,11 @@ export function ShowcaseApp() {
 
   const setDucking = useCallback((ducking: boolean) => {
     const music = audioRef.current;
+    isDuckingRef.current = ducking;
     if (!music) return;
     if (fadeFrameRef.current !== undefined) cancelAnimationFrame(fadeFrameRef.current);
     const start = music.volume;
-    const target = volumeRef.current * (ducking ? 0.72 : 1);
+    const target = musicVolume(volumeRef.current, ducking);
     const durationMs = ducking ? 280 : 900;
     const began = performance.now();
     const update = (time: number) => { const progress = Math.min(1, (time - began) / durationMs); music.volume = start + (target - start) * progress; if (progress < 1) fadeFrameRef.current = requestAnimationFrame(update); };
@@ -92,7 +95,7 @@ export function ShowcaseApp() {
     if (!music) return;
     const begin = () => {
       if (restart) music.currentTime = 0;
-      music.volume = volumeRef.current;
+      music.volume = musicVolume(volumeRef.current, isDuckingRef.current);
       void music.play().catch(() => setIsPlaying(false));
     };
     if (music.src !== source) {
@@ -135,7 +138,7 @@ export function ShowcaseApp() {
         voice.loop = false;
         if (restart) voice.currentTime = 0;
         voice.muted = false;
-        voice.volume = modeRef.current === "vocal_start" ? (activeTrackRef.current.vocalStartDjGain ?? 0.4) : 1;
+        voice.volume = narrationVolume(volumeRef.current, modeRef.current, activeTrackRef.current.vocalStartDjGain);
         void voice.play().then(() => setIsSpeaking(true)).catch(() => finish(false));
       };
       voice.onended = () => finish(true);
@@ -171,7 +174,14 @@ export function ShowcaseApp() {
   }
   function changeMode(nextMode: NarrationMode) { setMode(nextMode); window.localStorage.setItem(modeKey, nextMode); }
   function seek(time: number) { if (audioRef.current) audioRef.current.currentTime = time; setCurrentTime(time); narration.seek(time * 1000); }
-  function changeVolume(nextVolume: number) { volumeRef.current = nextVolume; setVolume(nextVolume); if (audioRef.current) audioRef.current.volume = nextVolume; }
+  function changeVolume(nextVolume: number) {
+    volumeRef.current = nextVolume;
+    setVolume(nextVolume);
+    if (fadeFrameRef.current !== undefined) cancelAnimationFrame(fadeFrameRef.current);
+    if (audioRef.current) audioRef.current.volume = musicVolume(nextVolume, isDuckingRef.current);
+    const voice = djVoiceAudioRef.current;
+    if (voice && !voice.muted) voice.volume = narrationVolume(nextVolume, modeRef.current, activeTrackRef.current.vocalStartDjGain);
+  }
   function handleMusicEnded() {
     const music = audioRef.current;
     if (music) music.currentTime = 0;

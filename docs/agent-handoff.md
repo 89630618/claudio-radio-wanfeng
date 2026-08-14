@@ -283,3 +283,21 @@
 - Verification: `npx tsx --test` passed 54/54; `npm run showcase:release-check` passed validation, build and static safety scan; `git diff --check` passed. Remaining manual acceptance: listen on a phone speaker at the vocal entry for `后来` and `遇见` before release.
 - Rapid public-content workflow remains gated: prepare the cleared short excerpt, cover, DJ audio, text, and vocal marker locally; import through `npm run showcase:import`; run `npm run showcase:release-check`; manually verify both narration modes; commit and push `showcase`; only then run the manually approved Pages deployment. No API keys, runtime uploads or automatic public deployment are introduced.
 - If a new recording remains materially quieter after the global mix change, normalize that music clip offline before import rather than adding per-track runtime gain logic. Keep the public rights record and relative static paths as release prerequisites.
+
+## 2026-08-14 Shared Volume And WeChat Control Correction
+
+- Baseline: this correction was made from the remote `showcase` snapshot `9d13d9f`, which already includes the four per-track `vocalStartDjGain` values. The user's private radio checkout and `main` were not modified.
+- Root cause of the remaining phone-speaker mix issue: `VOL` changed only the music element. The DJ element used a separate fixed gain, and dragging `VOL` while DJ ducking was active also restored the song to its non-ducked volume.
+- Added `src/showcase/playback-volume.ts`. Music now always uses the selected volume with the existing `0.72` ducking ratio when narration is active. DJ narration now also follows `VOL`; `人声协同` retains its catalog gain and `开头播放` uses the conservative `0.40` gain instead of 100%.
+- On WeChat-width screens (`420px` and below), the volume slider now occupies its own full row instead of inheriting the old fixed `70px` width. Its hit area is `30px` tall while retaining the same Claudio transport layout.
+- Verification: regression tests were written before the playback and CSS changes. Fresh suite passed `56/56`; `npm run build`, `npm run showcase:validate` (4 tracks) and `npm run showcase:scan-build` passed. Browser measurement at `360x800` confirmed the mobile media query, a `334px` volume row, and a `305px x 30px` slider target.
+- Human acceptance before push/deploy: on a WeChat phone speaker, enter the radio, choose `人声协同`, play `后来` and `遇见` through the vocal marker, and drag `VOL` while DJ audio is active. Both tracks should change together with no song-volume jump; the singer should remain understandable. Then confirm `开头播放` narration is clearly below full-volume DJ output.
+- Next step: after this listening check, commit/push the correction to `showcase`, then explicitly run the manual Pages workflow if the public site should receive it.
+
+## 2026-08-14 Five-Track Showcase Update
+
+- Added 周杰伦《蒲公英的约定》 from the user-supplied DJ package. The catalog uses its supplied DJ narration text, `vocalStartMs: 29000`, and the safe default `vocalStartDjGain: 0.40`.
+- The requested playback order is now: 后来、逍遥叹、蒲公英的约定、遇见、星座书上. The project-owned generic cover is reused at a unique static path for the new track.
+- The supplied music file is retained as provided under the user's explicit current release instruction. The asset license entry records the same user-authorized product-demonstration scope as the existing Showcase excerpts.
+- Verification: catalog-order regression test was red before the update and green after it. Fresh full suite passed `57/57`; `npm run showcase:validate:release` passed for all five tracks; `npm run build`, `npm run showcase:scan-build`, and `git diff --check` passed. The replacement music clip is `85.056s`, so the `29s` narration start is inside the published clip.
+- Next step: publish this content update together with the shared-volume correction to `showcase`, then run the manually approved Pages deployment.

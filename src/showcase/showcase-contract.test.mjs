@@ -157,10 +157,13 @@ test("showcase starts delayed narration through a muted browser-safe handoff", a
   assert.match(app, /voice\.loop = false; voice\.onended = null/);
 });
 
-test("showcase keeps the singer audible when vocal-start narration begins", async () => {
-  const [app, types] = await Promise.all([read("./ShowcaseApp.tsx"), read("./types.ts")]);
-  assert.match(app, /ducking \? 0\.72 : 1/);
-  assert.match(app, /voice\.volume = modeRef\.current === "vocal_start" \? \(activeTrackRef\.current\.vocalStartDjGain \?\? 0\.4\) : 1/);
+test("showcase keeps DJ and music volume proportional to the listener volume", async () => {
+  const [app, types, volume] = await Promise.all([read("./ShowcaseApp.tsx"), read("./types.ts"), read("./playback-volume.ts")]);
+  assert.match(app, /musicVolume\(nextVolume, isDuckingRef\.current\)/);
+  assert.match(app, /voice\.volume = narrationVolume\(volumeRef\.current, modeRef\.current, activeTrackRef\.current\.vocalStartDjGain\)/);
+  assert.match(app, /voice\.volume = narrationVolume\(nextVolume, modeRef\.current, activeTrackRef\.current\.vocalStartDjGain\)/);
+  assert.match(volume, /const introNarrationGain = 0\.4/);
+  assert.match(volume, /userVolume \* \(ducking \? musicDuckingGain : 1\)/);
   assert.match(types, /vocalStartDjGain\?: number;/);
 });
 
@@ -179,12 +182,15 @@ test("desktop showcase centers a complete 9:16 radio stage", async () => {
 
 test("narrow mobile keeps the radio chassis within the visual viewport", async () => {
   const [app, stylesheet] = await Promise.all([read("./ShowcaseApp.tsx"), read("../styles.css")]);
+  const narrowMobile = stylesheet.slice(stylesheet.indexOf("@media (max-width: 420px)"), stylesheet.indexOf("/* A 9:16 stage"));
 
   assert.match(app, /document\.documentElement\.style\.setProperty\("--showcase-visual-height", `\$\{visualViewport\?\.height \?\? window\.innerHeight\}px`\)/);
   assert.match(stylesheet, /@media \(max-width: 420px\) \{[\s\S]*?\.showcase-shell \{[\s\S]*?overflow-x: clip;/);
   assert.match(stylesheet, /@media \(max-width: 420px\) \{[\s\S]*?\.transport-strip \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) auto;/);
   assert.match(stylesheet, /@media \(max-width: 420px\) \{[\s\S]*?\.narration-mode \{[\s\S]*?grid-column: 1 \/ -1;/);
   assert.match(stylesheet, /@media \(max-width: 600px\) \{[\s\S]*?\.voice-panel \{[\s\S]*?height: calc\(var\(--showcase-visual-height, 100dvh\) - 24px - env\(safe-area-inset-top, 0px\) - env\(safe-area-inset-bottom, 0px\)\);[\s\S]*?min-height: 0;/);
+  assert.match(narrowMobile, /\.transport-strip \.elastic-volume \{[\s\S]*?grid-template-columns: auto minmax\(0, 1fr\);/);
+  assert.match(narrowMobile, /\.transport-strip \.elastic-volume__root \{[\s\S]*?width: auto;[\s\S]*?min-width: 0;/);
 });
 
 test("portrait showcase keeps volume and playback progress in separate rows", async () => {
@@ -229,6 +235,21 @@ test("local catalog marks each supplied clip at its verified first vocal", async
   assert.match(catalog, /"id": "local-yujian"[\s\S]*?"vocalStartMs": 25000/);
   assert.match(catalog, /"id": "local-xiaoyaotan"[\s\S]*?"vocalStartMs": 26000/);
   assert.match(catalog, /"id": "local-xingzuoshushang"[\s\S]*?"vocalStartMs": 33000/);
+});
+
+test("local catalog keeps the requested five-track showcase order", async () => {
+  const catalog = JSON.parse(await read("../../public/showcase/catalog.json"));
+
+  assert.deepEqual(catalog.map((track) => track.id), [
+    "local-houlai",
+    "local-xiaoyaotan",
+    "local-pugongying",
+    "local-yujian",
+    "local-xingzuoshushang",
+  ]);
+  assert.equal(catalog[2].title, "蒲公英的约定");
+  assert.equal(catalog[2].artist, "周杰伦");
+  assert.equal(catalog[2].vocalStartMs, 29000);
 });
 
 test("showcase keeps a 9:16-safe shared stage at portrait review widths", async () => {
