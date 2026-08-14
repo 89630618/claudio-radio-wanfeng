@@ -315,3 +315,10 @@
 - Only that supplied DJ file was normalized offline with `+8.5 dB` gain and a `0.85` peak limiter. It now measures `-14.2 LUFS`; its Showcase catalog gain is `0.65`, yielding about `-17.9 LUFS` beside a `-17.2 LUFS` ducked song window. Duration, transcript, timing, music excerpt and every other track gain remain unchanged.
 - The normalized narration is published at the versioned path `dj-v2.mp3`, so mobile browsers and WeChat cannot retain the previously cached DJ asset. The public asset license record was updated to the same path.
 - Regression test was written first and failed with the old `0.40` value. Next: run the complete release gates, publish, then listen to `人声协同` for `蒲公英的约定` on a phone speaker and compare it with `后来`.
+
+## 2026-08-14 README Synchronization
+
+- Updated the Showcase README to match the current five authorized demonstration excerpts, static-only boundary, two narration modes, transcript behavior, mobile-safe and desktop 9:16 presentation, release gate and Pages status.
+- The README now records the live Pages URL while preserving the actual deployment rule: pushes do not deploy automatically, and a later update requires a deliberate `deploy=true` run.
+- No application code, assets, workflows, `main` or Pages settings changed.
+- Verification: README commands and claims were checked against `package.json`, the Showcase Pages workflow, `ASSET-LICENSES.md`, the static app entry and the remote five-track deployment record.
