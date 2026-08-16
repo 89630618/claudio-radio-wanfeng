@@ -61,3 +61,15 @@ These entries apply to Showcase media only. They are not automatically covered b
 - Attribution: Original recording credited to the listed artist; excerpt supplied by project owner
 - Scope: public-web-hosting
 - Verified: 2026-08-13
+
+## 林俊杰 - 交换余生
+
+- Track ID: `local-jiaohuanyusheng`
+- Music: `showcase/tracks/local-jiaohuanyusheng/music.mp3`
+- Cover: `showcase/tracks/local-jiaohuanyusheng/cover.jpg`
+- DJ audio: `showcase/tracks/local-jiaohuanyusheng/dj.mp3`
+- License: User-authorized short excerpt for Claudio product demonstration; no full recording
+- Source: User-provided demonstration authorization
+- Attribution: Original recording credited to 林俊杰; excerpt supplied by project owner
+- Scope: public-web-hosting
+- Verified: 2026-08-16

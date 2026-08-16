@@ -63,5 +63,18 @@
     "vocalStartMs": 33000,
     "vocalStartDjGain": 0.55,
     "rights": { "status": "cleared", "scope": "public-web-hosting", "license": "User-authorized short excerpt for Claudio product demonstration; no full recording", "sourceUrl": "User-provided demonstration authorization", "attribution": "Original recording credited to the listed artist; excerpt supplied by project owner", "verifiedAt": "2026-08-13" }
+  },
+  {
+    "id": "local-jiaohuanyusheng",
+    "title": "交换余生",
+    "artist": "林俊杰",
+    "album": "本机产品试听",
+    "musicSrc": "showcase/tracks/local-jiaohuanyusheng/music.mp3",
+    "coverSrc": "showcase/tracks/local-jiaohuanyusheng/cover.jpg",
+    "djText": "有些歌听起来像一封写给平行时空的信。《交换余生》里，林俊杰把遗憾唱得很克制，没有撕心裂肺地追问，也没有把告别说得太绝对，只是在旋律一层层铺开时，让人想起那些曾经以为可以一起走很远的人。我们总会在某个深夜忍不住设想：如果当初多说一句、多等一会儿，结局会不会不一样。但生活没有交换键，能做的，是把没能抵达的故事收好，然后继续往前走。接下来这首，送给每一个心里还留着一点念想的人，林俊杰《交换余生》。",
+    "djAudioSrc": "showcase/tracks/local-jiaohuanyusheng/dj.mp3",
+    "vocalStartMs": 35000,
+    "vocalStartDjGain": 0.55,
+    "rights": { "status": "cleared", "scope": "public-web-hosting", "license": "User-authorized short excerpt for Claudio product demonstration; no full recording", "sourceUrl": "User-provided demonstration authorization", "attribution": "Original recording credited to 林俊杰; excerpt supplied by project owner", "verifiedAt": "2026-08-16" }
   }
 ]
